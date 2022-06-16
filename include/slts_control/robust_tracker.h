@@ -50,15 +50,6 @@ class RobustTracker {
   Eigen::Vector3d uav_acc{Eigen::Vector3d::Zero()};
   Eigen::Quaterniond uav_att{Eigen::Quaterniond::Identity()};
 
-  Eigen::Vector2d pld_rel_pos_{Eigen::Vector2d::Zero()};
-  Eigen::Vector2d pld_rel_vel_{Eigen::Vector2d::Zero()};
-  Eigen::Vector3d pld_vel{Eigen::Vector3d::Zero()};
-  Eigen::Vector3d pld_ang_vel{Eigen::Vector3d::Zero()};
-
-  Eigen::Quaterniond pld_att{Eigen::Quaterniond::Identity()};
-  Eigen::Quaterniond pld_att_sp{Eigen::Quaterniond::Identity()};
-  Eigen::Vector3d pld_abs_vel{Eigen::Vector3d::Zero()};
-
  private:
   struct DisturbanceEstimate {
     double scaling;
@@ -75,6 +66,11 @@ class RobustTracker {
   const double kCableLenSq;
   const Eigen::Vector3d kPldWeight;
   const Eigen::Vector3d kUavWeight;
+
+  Eigen::Vector2d pld_rel_pos_{Eigen::Vector2d::Zero()};
+  Eigen::Vector2d pld_rel_vel_{Eigen::Vector2d::Zero()};
+  Eigen::Vector3d pld_vel_{Eigen::Vector3d::Zero()};
+  Eigen::Vector3d pld_abs_vel_{Eigen::Vector3d::Zero()};
 
   Eigen::Vector3d thrust_;
   Eigen::Vector3d pld_rel_vel_full_;
