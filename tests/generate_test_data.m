@@ -3,7 +3,7 @@ addpath('models', 'utils');
 model = 'test_controller';
 in = Simulink.SimulationInput(model);
 in = in.setModelParameter('SimulationMode', 'accelerator');
-in = in.setModelParameter('StopTime', '100');
+in = in.setModelParameter('StopTime', '30');
 in = in.setModelParameter('SolverType', 'Fixed-step');
 in = in.setModelParameter('SolverName', 'euler');
 
