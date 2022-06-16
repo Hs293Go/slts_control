@@ -32,7 +32,7 @@ void RobustTracker::computeControlOutput(std::uint64_t t) {
   thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
 }
 
-void RobustTracker::setPayloadRelativePosition(
+bool RobustTracker::setPayloadRelativePosition(
     std::uint64_t time, const Eigen::Vector2d& pld_rel_pos) {
   auto last_time = pld_speed_diff_time.load();
   const auto dt = 1e-9 * (time - last_time);
@@ -42,9 +42,18 @@ void RobustTracker::setPayloadRelativePosition(
 
   pld_rel_vel_ = (pld_rel_pos - pld_rel_pos_) / dt;
   pld_rel_pos_ = pld_rel_pos;
+
+  return computeFullVelocity();
 }
 
-void RobustTracker::computeFullVelocity() {
+bool RobustTracker::setPayloadRelativePosVel(
+    const Eigen::Vector2d& pld_rel_pos, const Eigen::Vector2d& pld_rel_vel) {
+  pld_rel_pos_ = pld_rel_pos;
+  pld_rel_vel_ = pld_rel_vel;
+  return computeFullVelocity();
+}
+
+bool RobustTracker::computeFullVelocity() {
   pld_rel_vel_full_.head<2>() = pld_rel_vel_;
   const Eigen::Vector2d swing_error = pld_rel_pos_ - pld_rel_pos_sp_est_;
   const Eigen::Vector2d gen_swing_speed = pld_rel_vel_ + swing_error;
@@ -73,14 +82,9 @@ void RobustTracker::computeFullVelocity() {
     const Eigen::Vector2d B_rc =
         -sqrt(kCableLenSq - sq_nrm) / kCableLenSq * pld_rel_pos_;
     B_frak_ << B_lc, B_rc, B_rc.transpose(), sq_nrm / kCableLenSq;
-
-  } else {
-    pld_rel_vel_full_.z() = 0.0;
-    augmented_swing_speed_.z() = 0.0;
-    translational_sync_.z() = 0.0;
-
-    B_frak_ << B_lc, ZEROS(2, 1), ZEROS(1, 2), sq_nrm / kCableLenSq;
+    return true;
   }
+  return false;
 }
 
 void RobustTracker::updateDisturbanceEstimates(double dt) {

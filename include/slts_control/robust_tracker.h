@@ -27,10 +27,13 @@ class RobustTracker {
 
   void updateDisturbanceEstimates(double dt);
 
-  void setPayloadRelativePosition(std::uint64_t time,
+  bool setPayloadRelativePosition(std::uint64_t time,
                                   const Eigen::Vector2d& pld_rel_pos);
 
-  void computeFullVelocity();
+  bool setPayloadRelativePosVel(const Eigen::Vector2d& pld_rel_pos,
+                                const Eigen::Vector2d& pld_rel_vel);
+
+  bool computeFullVelocity();
   void computePayloadStateEstimates();
 
   void computeControlOutput(std::uint64_t t);
