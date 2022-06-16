@@ -1,5 +1,5 @@
 % clearvars; close all; clc;
-addpath('models');
+addpath('models', 'utils');
 model = 'test_controller';
 in = Simulink.SimulationInput(model);
 in = in.setModelParameter('SimulationMode', 'accelerator');
@@ -9,22 +9,21 @@ in = in.setModelParameter('SolverName', 'euler');
 
 % soln = sim(in);
 
-pld = DatasetToJStruct(soln, ["pld_abs_pos", "pld_rel_pos", "pld_abs_vel", "pld_rel_vel", "act_force"]);
+pld = DatasetToStruct(soln, [ ...
+                            "pld_abs_pos", ...
+                            "pld_rel_pos", ...
+                            "pld_abs_vel", ...
+                            "pld_rel_vel", ...
+                            "act_force", ...
+                            "pos_err", ...
+                            "vel_err", ...
+                            "proj_de", ...
+                            "total_de", ...
+                            "proj_de_est_err", ...
+                            "total_de_est_err", ...
+                            "pld_swing_est_err"
+                        ]);
 
 fid = fopen('test_controller.json', 'w');
 fprintf(fid, '%s', jsonencode(pld));
 fclose(fid);
-
-function json = DatasetToJStruct(ds, fields)
-    
-    tout = ds.tout;
-    yout = ds.yout;
-    json = struct('tout', struct('size', size(tout), 'value', tout));
-    for it = fields
-        val = squeeze(yout.get(it).Values.Data).';
-        sz = size(val);
-        val = reshape(val, [], 1);
-        json.(it) = struct('size', sz, 'value', val);
-    end
-
-end
