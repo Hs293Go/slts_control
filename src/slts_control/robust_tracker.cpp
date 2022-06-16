@@ -20,7 +20,17 @@ RobustTracker::RobustTracker(const common::SLTSProperty& slts_property)
       kPldWeight(kPldMass * 9.8 * Eigen::Vector3d::UnitZ()),
       kUavWeight(kUavMass * 9.8 * Eigen::Vector3d::UnitZ()) {}
 
-void RobustTracker::computeControlOutput(std::uint64_t t) {}
+void RobustTracker::computeControlOutput(std::uint64_t t) {
+  auto sync_force =
+      -kUavMass * (trans_cross_feeding_rates_ + translational_sync_);
+  auto motion_compensator =
+      -k_trim * (uav_vel + trans_cross_feeding_ - augmented_swing_speed_);
+  auto trans_compensator = -kPldMass * (trans_cross_feeding_rates_ +
+                                        k_gen_trans_err * gen_trans_err_);
+
+  auto trim_force = -kUavWeight + pld_trim_est_ - proj_de_.value;
+  thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
+}
 
 void RobustTracker::setPayloadRelativePosition(
     std::uint64_t time, const Eigen::Vector2d& pld_rel_pos) {
@@ -36,7 +46,8 @@ void RobustTracker::setPayloadRelativePosition(
 
 void RobustTracker::computeFullVelocity() {
   pld_rel_vel_full_.head<2>() = pld_rel_vel_;
-  const Eigen::Vector2d gen_swing_speed = pld_rel_vel_ + swing_error_;
+  const Eigen::Vector2d swing_error = pld_rel_pos_ - pld_rel_pos_sp_est_;
+  const Eigen::Vector2d gen_swing_speed = pld_rel_vel_ + swing_error;
   augmented_swing_speed_.head<2>() = gen_swing_speed;
 
   translational_sync_.head<2>() = k_swing * pld_rel_vel_;
@@ -57,8 +68,7 @@ void RobustTracker::computeFullVelocity() {
     auto B_factor_rate =
         (iz_sq * pld_rel_pos_.dot(pld_rel_vel_) * pld_rel_pos_ + pld_rel_vel_) *
         iz;
-    translational_sync_.z() =
-        augmented_swing_speed_.z() + B_factor_rate.dot(swing_error_);
+    translational_sync_.z() += B_factor_rate.dot(swing_error);
 
     const Eigen::Vector2d B_rc =
         -sqrt(kCableLenSq - sq_nrm) / kCableLenSq * pld_rel_pos_;
@@ -73,50 +83,34 @@ void RobustTracker::computeFullVelocity() {
   }
 }
 
-void RobustTracker::computeSyncForce() {
-  sync_force_ = -kUavMass * (trans_cross_feeding_rates_ + translational_sync_);
-}
-
-void RobustTracker::computeMotionCompensator() {
-  motion_compensator_ =
-      -k_trim * (uav_vel + trans_cross_feeding_ - augmented_swing_speed_);
-}
-
-void RobustTracker::computeTranslationalCompensator() {
-  trans_compensator_ = -kPldMass * (trans_cross_feeding_rates_ +
-                                    k_gen_trans_err * gen_trans_err_);
-}
-
-void RobustTracker::updateProjectedDE(double dt) {
+void RobustTracker::updateDisturbanceEstimates(double dt) {
   auto thrust = uav_att.inverse() * Eigen::Vector3d::UnitZ() * thrust_sp_.norm();
 
-  auto integrand =
+  Eigen::Vector3d integrand;
+  integrand =
       B_frak_ * (kUavMass * uav_acc - thrust - kUavWeight - proj_de_.value);
   proj_de_.integral =
       utils::Clip(proj_de_.integral + integrand * dt, proj_de_.ub, proj_de_.lb);
   proj_de_.value = proj_de_.scaling * proj_de_.integral;
-}
 
-void RobustTracker::updateTotalDE(double dt) {
   // ∫ Σ(...) + Δ_T + (m_p + M_q) * g_I
-  const Eigen::Vector3d integrand = total_de_.value + thrust_ + proj_de_.value;
+  integrand = total_de_.value + thrust_ + proj_de_.value;
   total_de_.integral += integrand * dt;
   total_de_.value =
-      total_de_.scaling * (kSysMass * pld_abs_vel +
+      total_de_.scaling * (kSysMass * pld_abs_vel_ +
                            kUavMass * pld_rel_vel_full_ - total_de_.integral);
+
+  computePayloadStateEstimates();
 }
 
-void RobustTracker::computePayloadEquilibrium() {
-  pld_trim_ = -(kPldWeight + total_de_.value);
-  trim_force_ = -kUavWeight + pld_trim_ - proj_de_.value;
-
-  const double sq_nrm = pld_trim_.squaredNorm();
-  Eigen::Vector2d pld_rel_pos_sp;
+void RobustTracker::computePayloadStateEstimates() {
+  using std::sqrt;
+  pld_trim_est_ = -(kPldWeight + total_de_.value);
+  const double sq_nrm = pld_trim_est_.squaredNorm();
   if (sq_nrm > 0.0) {
-    pld_rel_pos_sp = kCableLen * pld_trim_.head<2>() / sqrt(sq_nrm);
+    pld_rel_pos_sp_est_ = kCableLen * pld_trim_est_.head<2>() / sqrt(sq_nrm);
   } else {
-    pld_rel_pos_sp.setZero();
+    pld_rel_pos_sp_est_.setZero();
   }
-  swing_error_ = k_swing * (pld_rel_pos_ - pld_rel_pos_sp);
 }
 }  // namespace control

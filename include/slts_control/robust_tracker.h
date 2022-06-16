@@ -25,17 +25,13 @@ class RobustTracker {
   RobustTracker& operator=(const RobustTracker&) = delete;
   RobustTracker& operator=(RobustTracker&&) = delete;
 
-  void updateProjectedDE(double dt);
-  void updateTotalDE(double dt);
+  void updateDisturbanceEstimates(double dt);
 
   void setPayloadRelativePosition(std::uint64_t time,
                                   const Eigen::Vector2d& pld_rel_pos);
 
   void computeFullVelocity();
-  void computeSyncForce();
-  void computeMotionCompensator();
-  void computeTranslationalCompensator();
-  void computePayloadEquilibrium();
+  void computePayloadStateEstimates();
 
   void computeControlOutput(std::uint64_t t);
 
@@ -74,7 +70,6 @@ class RobustTracker {
 
   Eigen::Vector3d thrust_;
   Eigen::Vector3d pld_rel_vel_full_;
-  Eigen::Vector2d swing_error_;
   Eigen::Vector3d translational_sync_;
   Eigen::Vector3d gen_trans_err_;
   Eigen::Vector3d trans_cross_feeding_;
@@ -88,12 +83,9 @@ class RobustTracker {
   // d⊥
   DisturbanceEstimate proj_de_;
 
-  Eigen::Vector3d sync_force_;
-  Eigen::Vector3d motion_compensator_;
-  Eigen::Vector3d trans_compensator_;
-  Eigen::Vector3d rot_compensator_;
-  Eigen::Vector3d pld_trim_;
-  Eigen::Vector3d trim_force_;
+  // r_d = l f_dxy / ||f_xdy||
+  Eigen::Vector2d pld_rel_pos_sp_est_;
+  Eigen::Vector3d pld_trim_est_;
 
   Eigen::Vector3d thrust_sp_;
   double yaw_sp_;
