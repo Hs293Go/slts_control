@@ -1,4 +1,4 @@
-% clearvars; close all; clc;
+clearvars; close all; clc;
 addpath('models', 'utils');
 model = 'test_controller';
 in = Simulink.SimulationInput(model);
@@ -7,7 +7,7 @@ in = in.setModelParameter('StopTime', '100');
 in = in.setModelParameter('SolverType', 'Fixed-step');
 in = in.setModelParameter('SolverName', 'euler');
 
-% soln = sim(in);
+soln = sim(in);
 
 pld = DatasetToStruct(soln, [ ...
                             "pld_abs_pos", ...
