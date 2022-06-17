@@ -24,9 +24,9 @@ void RobustTracker::computeControlOutput(std::uint64_t t) {
   auto sync_force =
       -kUavMass * (trans_cross_feeding_rates_ + translational_sync_);
   auto motion_compensator =
-      -k_trim * (uav_vel + trans_cross_feeding_ - augmented_swing_speed_);
+      -k_trim_ * (uav_vel + trans_cross_feeding_ - augmented_swing_speed_);
   auto trans_compensator = -kPldMass * (trans_cross_feeding_rates_ +
-                                        k_gen_trans_err * gen_trans_err_);
+                                        k_gen_trans_err_ * gen_trans_err_);
 
   auto trim_force = -kUavWeight + pld_trim_est_ - proj_de_.value;
   thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
@@ -59,7 +59,7 @@ bool RobustTracker::computeFullVelocity() {
   const Eigen::Vector2d gen_swing_speed = pld_rel_vel_ + swing_error;
   augmented_swing_speed_.head<2>() = gen_swing_speed;
 
-  translational_sync_.head<2>() = k_swing * pld_rel_vel_;
+  translational_sync_ = k_swing_ * pld_rel_vel_full_;
 
   auto B_lc = Eigen::Matrix2d::Identity() -
               pld_rel_pos_ * pld_rel_pos_.transpose() / kCableLenSq;

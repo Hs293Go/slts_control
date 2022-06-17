@@ -18,6 +18,18 @@ auto Clip(const Eigen::MatrixBase<Derived1>& x,
           const Eigen::MatrixBase<Derived3>& lb) {
   return x.cwiseMax(lb).cwiseMin(ub);
 }
+
+template <typename Derived, typename Scalar>
+void setEigenObj(Scalar src, Eigen::DenseBase<Derived>& dst) {
+  dst.setConstant(src);
+}
+
+template <typename Derived1, typename Derived2>
+void setEigenObj(const Eigen::DenseBase<Derived1>& src,
+                 Eigen::DenseBase<Derived2>& dst) {
+  dst.setConstant(src);
+}
+
 }  // namespace utils
 
 #endif  // EIGEN_UTILS_H

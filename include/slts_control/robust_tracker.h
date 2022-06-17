@@ -12,6 +12,7 @@
 #include <mutex>
 
 #include "slts_control/common.h"
+#include "slts_control/eigen_utils.h"
 
 namespace control {
 
@@ -24,6 +25,23 @@ class RobustTracker {
   RobustTracker(RobustTracker&&) = delete;
   RobustTracker& operator=(const RobustTracker&) = delete;
   RobustTracker& operator=(RobustTracker&&) = delete;
+
+  template <typename T>
+  bool setParams(const T& p) {
+    k_gen_trans_err_ = p.k_gen_trans_err;
+    k_trim_ = p.k_trim;
+    k_swing_ = p.k_swing;
+
+    total_de_.scaling = p.total_de_scaling;
+    utils::setEigenObj(p.total_de_lb, total_de_.lb);
+    utils::setEigenObj(p.total_de_ub, total_de_.ub);
+
+    proj_de_.scaling = p.proj_de_scaling;
+    utils::setEigenObj(p.proj_de_lb, proj_de_.lb);
+    utils::setEigenObj(p.proj_de_ub, proj_de_.ub);
+    param_set_ = true;
+    return true;
+  }
 
   void updateDisturbanceEstimates(double dt);
 
@@ -41,10 +59,6 @@ class RobustTracker {
   inline const Eigen::Vector3d& thrust_sp() const { return thrust_sp_; }
   inline double yaw_sp() const { return yaw_sp_; }
 
-  double k_gen_trans_err;
-  double k_gen_rot_err;
-  double k_trim;
-  double k_swing;
   Eigen::Vector3d uav_vel{Eigen::Vector3d::Zero()};
   Eigen::Vector3d uav_acc{Eigen::Vector3d::Zero()};
   Eigen::Quaterniond uav_att{Eigen::Quaterniond::Identity()};
@@ -65,6 +79,11 @@ class RobustTracker {
   const double kCableLenSq;
   const Eigen::Vector3d kPldWeight;
   const Eigen::Vector3d kUavWeight;
+
+  double k_gen_trans_err_;
+  double k_trim_;
+  double k_swing_;
+  bool param_set_{false};
 
   Eigen::Vector2d pld_rel_pos_{Eigen::Vector2d::Zero()};
   Eigen::Vector2d pld_rel_vel_{Eigen::Vector2d::Zero()};
