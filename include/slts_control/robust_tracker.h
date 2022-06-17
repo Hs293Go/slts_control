@@ -12,7 +12,7 @@
 #include <mutex>
 
 #include "slts_control/common.h"
-#include "slts_control/eigen_utils.h"
+#include "slts_control/integral.h"
 
 namespace control {
 
@@ -33,12 +33,14 @@ class RobustTracker {
     k_swing_ = p.k_swing;
 
     total_de_.scaling = p.total_de_scaling;
-    utils::setEigenObj(p.total_de_lb, total_de_.lb);
-    utils::setEigenObj(p.total_de_ub, total_de_.ub);
+    if (!total_de_.integral.setBounds(p.total_de_ub, p.total_de_lb)) {
+      return false;
+    }
 
     proj_de_.scaling = p.proj_de_scaling;
-    utils::setEigenObj(p.proj_de_lb, proj_de_.lb);
-    utils::setEigenObj(p.proj_de_ub, proj_de_.ub);
+    if (!proj_de_.integral.setBounds(p.proj_de_ub, p.proj_de_lb)) {
+      return false;
+    }
     param_set_ = true;
     return true;
   }
@@ -66,9 +68,7 @@ class RobustTracker {
  private:
   struct DisturbanceEstimate {
     double scaling;
-    Eigen::Vector3d integral;
-    Eigen::Vector3d ub;
-    Eigen::Vector3d lb;
+    math::Integral<Eigen::Vector3d> integral;
     Eigen::Vector3d value;
   };
 

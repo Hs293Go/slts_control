@@ -90,19 +90,15 @@ bool RobustTracker::computeFullVelocity() {
 void RobustTracker::updateDisturbanceEstimates(double dt) {
   auto thrust = uav_att.inverse() * Eigen::Vector3d::UnitZ() * thrust_sp_.norm();
 
-  Eigen::Vector3d integrand;
-  integrand =
-      B_frak_ * (kUavMass * uav_acc - thrust - kUavWeight - proj_de_.value);
-  proj_de_.integral =
-      utils::Clip(proj_de_.integral + integrand * dt, proj_de_.ub, proj_de_.lb);
-  proj_de_.value = proj_de_.scaling * proj_de_.integral;
+  proj_de_.integral.integrate(
+      B_frak_ * (kUavMass * uav_acc - thrust - kUavWeight - proj_de_.value), dt);
+  proj_de_.value = proj_de_.scaling * proj_de_.integral.value();
 
   // ∫ Σ(...) + Δ_T + (m_p + M_q) * g_I
-  integrand = total_de_.value + thrust_ + proj_de_.value;
-  total_de_.integral += integrand * dt;
-  total_de_.value =
-      total_de_.scaling * (kSysMass * pld_abs_vel_ +
-                           kUavMass * pld_rel_vel_full_ - total_de_.integral);
+  total_de_.integral.integrate(total_de_.value + thrust_ + proj_de_.value, dt);
+  total_de_.value = total_de_.scaling *
+                    (kSysMass * pld_abs_vel_ + kUavMass * pld_rel_vel_full_ -
+                     total_de_.integral.value());
 
   computePayloadStateEstimates();
 }
