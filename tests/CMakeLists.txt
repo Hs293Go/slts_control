@@ -27,4 +27,4 @@ target_link_libraries(
           GTest::gmock_main
           GTest::gtest_main
           jsoncpp
-          tbb)
+          robust_tracker)
