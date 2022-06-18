@@ -5,6 +5,7 @@ in = Simulink.SimulationInput(model);
 in = in.setModelParameter('SimulationMode', 'accelerator');
 in = in.setModelParameter('StopTime', '30');
 in = in.setModelParameter('SolverType', 'Fixed-step');
+in = in.setModelParameter('FixedStep', '0.01');
 in = in.setModelParameter('SolverName', 'euler');
 
 soln = sim(in);
