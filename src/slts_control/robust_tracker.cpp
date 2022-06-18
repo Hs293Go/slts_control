@@ -32,6 +32,14 @@ void RobustTracker::computeControlOutput(std::uint64_t t) {
   thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
 }
 
+void RobustTracker::setPayloadTranslationalErrors(
+    const Eigen::Vector3d& pld_pos_err, const Eigen::Vector3d& pld_vel_err,
+    const Eigen::Vector3d& pld_vel_sp) {
+  pld_pos_err_ = pld_pos_err;
+  pld_vel_err_ = pld_vel_err;
+  pld_vel_sp_ = pld_vel_sp;
+}
+
 bool RobustTracker::setPayloadRelativePosition(
     std::uint64_t time, const Eigen::Vector2d& pld_rel_pos) {
   auto last_time = pld_speed_diff_time.load();
