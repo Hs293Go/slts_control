@@ -21,6 +21,14 @@ RobustTracker::RobustTracker(const common::SLTSProperty& slts_property)
       kUavWeight(kUavMass * 9.8 * Eigen::Vector3d::UnitZ()) {}
 
 void RobustTracker::computeControlOutput(std::uint64_t t) {
+  auto last_time = integrator_last_time_.load();
+  auto dt = 1e-9 * (t - last_time);
+  updateDisturbanceEstimates(dt);
+  updateTranslationalErrors(dt);
+
+  while (!integrator_last_time_.compare_exchange_weak(last_time, t)) {
+  }
+
   auto sync_force =
       -kUavMass * (trans_cross_feeding_rates_ + translational_sync_);
   auto motion_compensator =

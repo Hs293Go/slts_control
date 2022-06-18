@@ -136,6 +136,7 @@ class RobustTracker {
   std::mutex mtx_;
 
   std::atomic_uint64_t pld_speed_diff_time;
+  std::atomic_uint64_t integrator_last_time_;
 };
 
 }  // namespace control
