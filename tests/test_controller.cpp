@@ -3,6 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <jsoncpp/json/json.h>
 
@@ -15,9 +16,14 @@
 #include "slts_control/common.h"
 #include "slts_control/robust_tracker.h"
 
+using namespace std::string_literals;
+MATCHER_P(ContainsKey, key, key + (negation ? " not "s : " "s) + "found") {
+  return arg.count(key) > 0;
+}
+
 class TestController : public ::testing::Test {
  public:
-  TestController() : tracker(Properties()) {}
+  TestController() : tracker(Properties()) { readFromFile(); }
 
   std::unordered_map<std::string, Eigen::MatrixXd> dataset;
   control::RobustTracker tracker;
@@ -48,6 +54,23 @@ class TestController : public ::testing::Test {
     return p;
   }
 };
+
+TEST_F(TestController, testDataFileKeys) {
+  ASSERT_THAT(dataset, ContainsKey("pld_abs_vel"));
+  ASSERT_THAT(dataset, ContainsKey("pld_abs_pos"));
+  ASSERT_THAT(dataset, ContainsKey("pld_rel_pos"));
+  ASSERT_THAT(dataset, ContainsKey("pld_abs_vel"));
+  ASSERT_THAT(dataset, ContainsKey("pld_rel_vel"));
+  ASSERT_THAT(dataset, ContainsKey("act_force"));
+  ASSERT_THAT(dataset, ContainsKey("pld_pos_err"));
+  ASSERT_THAT(dataset, ContainsKey("pld_vel_err"));
+  ASSERT_THAT(dataset, ContainsKey("pld_vel_sp"));
+  ASSERT_THAT(dataset, ContainsKey("proj_de"));
+  ASSERT_THAT(dataset, ContainsKey("total_de"));
+  ASSERT_THAT(dataset, ContainsKey("proj_de_est_err"));
+  ASSERT_THAT(dataset, ContainsKey("total_de_est_err"));
+  ASSERT_THAT(dataset, ContainsKey("pld_swing_est_err"));
+}
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
