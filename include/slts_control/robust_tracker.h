@@ -28,6 +28,7 @@ class RobustTracker {
 
   template <typename T>
   bool setParams(const T& p) {
+    k_pos_err_ = p.k_pos_err;
     k_gen_trans_err_ = p.k_gen_trans_err;
     k_trim_ = p.k_trim;
     k_swing_ = p.k_swing;
@@ -39,6 +40,11 @@ class RobustTracker {
 
     proj_de_.scaling = p.proj_de_scaling;
     if (!proj_de_.integral.setBounds(p.proj_de_ub, p.proj_de_lb)) {
+      return false;
+    }
+
+    if (!filt_cross_feeding_.setBounds(p.filt_cross_feeding_ub,
+                                       p.filt_cross_feeding_lb)) {
       return false;
     }
     param_set_ = true;
@@ -54,6 +60,8 @@ class RobustTracker {
                                 const Eigen::Vector2d& pld_rel_vel);
 
   bool computeFullVelocity();
+  void updateTranslationalErrors(double dt);
+
   void computePayloadStateEstimates();
 
   void computeControlOutput(std::uint64_t t);
@@ -80,9 +88,12 @@ class RobustTracker {
   const Eigen::Vector3d kPldWeight;
   const Eigen::Vector3d kUavWeight;
 
+  double k_pos_err_;
   double k_gen_trans_err_;
   double k_trim_;
   double k_swing_;
+  double k_filter_gain_;
+  double k_filter_leak_;
   bool param_set_{false};
 
   Eigen::Vector2d pld_rel_pos_{Eigen::Vector2d::Zero()};
@@ -90,13 +101,18 @@ class RobustTracker {
   Eigen::Vector3d pld_vel_{Eigen::Vector3d::Zero()};
   Eigen::Vector3d pld_abs_vel_{Eigen::Vector3d::Zero()};
 
+  math::Integral<Eigen::Vector3d> filt_cross_feeding_;
   Eigen::Vector3d thrust_;
   Eigen::Vector3d pld_rel_vel_full_;
   Eigen::Vector3d translational_sync_;
+  Eigen::Vector3d pld_pos_err_;
+  Eigen::Vector3d pld_pos_err_rates_;
+  Eigen::Vector3d pld_vel_err_;
+  Eigen::Vector3d pld_vel_sp_;
   Eigen::Vector3d gen_trans_err_;
   Eigen::Vector3d trans_cross_feeding_;
   Eigen::Vector3d trans_cross_feeding_rates_;
-  Eigen::Vector3d augmented_swing_speed_;
+  Eigen::Vector3d raw_cross_feeding_;
   Eigen::Matrix3d B_frak_;
 
   // dT

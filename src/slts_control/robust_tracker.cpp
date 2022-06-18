@@ -24,7 +24,7 @@ void RobustTracker::computeControlOutput(std::uint64_t t) {
   auto sync_force =
       -kUavMass * (trans_cross_feeding_rates_ + translational_sync_);
   auto motion_compensator =
-      -k_trim_ * (uav_vel + trans_cross_feeding_ - augmented_swing_speed_);
+      -k_trim_ * (uav_vel + trans_cross_feeding_ - raw_cross_feeding_);
   auto trans_compensator = -kPldMass * (trans_cross_feeding_rates_ +
                                         k_gen_trans_err_ * gen_trans_err_);
 
@@ -57,7 +57,7 @@ bool RobustTracker::computeFullVelocity() {
   pld_rel_vel_full_.head<2>() = pld_rel_vel_;
   const Eigen::Vector2d swing_error = pld_rel_pos_ - pld_rel_pos_sp_est_;
   const Eigen::Vector2d gen_swing_speed = pld_rel_vel_ + swing_error;
-  augmented_swing_speed_.head<2>() = gen_swing_speed;
+  raw_cross_feeding_.head<2>() = gen_swing_speed;
 
   translational_sync_ = k_swing_ * pld_rel_vel_full_;
 
@@ -72,7 +72,7 @@ bool RobustTracker::computeFullVelocity() {
     // B-matrix is identity
     const Eigen::Vector2d B3 = pld_rel_pos_ * iz;
     pld_rel_vel_full_.z() = B3.dot(pld_rel_vel_);
-    augmented_swing_speed_.z() = B3.dot(gen_swing_speed);
+    raw_cross_feeding_.z() = B3.dot(gen_swing_speed);
 
     auto B_factor_rate =
         (iz_sq * pld_rel_pos_.dot(pld_rel_vel_) * pld_rel_pos_ + pld_rel_vel_) *
@@ -85,6 +85,21 @@ bool RobustTracker::computeFullVelocity() {
     return true;
   }
   return false;
+}
+
+void RobustTracker::updateTranslationalErrors(double dt) {
+  const Eigen::Vector3d scaled_pos_err = k_pos_err_ * pld_pos_err_;
+  gen_trans_err_ = scaled_pos_err + pld_vel_err_;
+
+  const Eigen::Vector3d& filt_cross_feeding = filt_cross_feeding_.value();
+  trans_cross_feeding_ = scaled_pos_err + filt_cross_feeding - pld_vel_sp_;
+
+  auto filt_cross_feeding_rates =
+      -k_filter_leak_ * raw_cross_feeding_ + k_filter_gain_ * filt_cross_feeding;
+  auto scaled_pos_err_rates = k_pos_err_ * pld_pos_err_rates_;
+  trans_cross_feeding_rates_ = scaled_pos_err_rates + filt_cross_feeding_rates;
+
+  filt_cross_feeding_.integrate(filt_cross_feeding_rates, dt);
 }
 
 void RobustTracker::updateDisturbanceEstimates(double dt) {
