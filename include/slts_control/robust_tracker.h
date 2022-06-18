@@ -51,18 +51,11 @@ class RobustTracker {
     return true;
   }
 
-  void updateDisturbanceEstimates(double dt);
-
   bool setPayloadRelativePosition(std::uint64_t time,
                                   const Eigen::Vector2d& pld_rel_pos);
 
   bool setPayloadRelativePosVel(const Eigen::Vector2d& pld_rel_pos,
                                 const Eigen::Vector2d& pld_rel_vel);
-
-  bool computeFullVelocity();
-  void updateTranslationalErrors(double dt);
-
-  void computePayloadStateEstimates();
 
   void computeControlOutput(std::uint64_t t);
 
@@ -79,6 +72,14 @@ class RobustTracker {
     math::Integral<Eigen::Vector3d> integral;
     Eigen::Vector3d value;
   };
+
+  bool computeFullVelocity();
+
+  void computePayloadStateEstimates();
+
+  void updateTranslationalErrors(double dt);
+
+  void updateDisturbanceEstimates(double dt);
 
   const double kUavMass;
   const double kPldMass;
