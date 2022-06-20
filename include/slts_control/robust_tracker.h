@@ -51,6 +51,12 @@ class RobustTracker {
     return true;
   }
 
+  void setUavVelocity(const Eigen::Vector3d& uav_vel);
+
+  void setUavAcceleration(const Eigen::Vector3d& uav_acc);
+
+  void setActualThrust(const Eigen::Vector3d& thrust_act);
+
   bool setPayloadRelativePosition(std::uint64_t time,
                                   const Eigen::Vector2d& pld_rel_pos);
 
@@ -65,10 +71,6 @@ class RobustTracker {
 
   inline const Eigen::Vector3d& thrust_sp() const { return thrust_sp_; }
   inline double yaw_sp() const { return yaw_sp_; }
-
-  Eigen::Vector3d uav_vel{Eigen::Vector3d::Zero()};
-  Eigen::Vector3d uav_acc{Eigen::Vector3d::Zero()};
-  Eigen::Quaterniond uav_att{Eigen::Quaterniond::Identity()};
 
  private:
   struct DisturbanceEstimate {
@@ -100,6 +102,8 @@ class RobustTracker {
   double k_filter_gain_;
   double k_filter_leak_;
   bool param_set_{false};
+  Eigen::Vector3d uav_vel_{Eigen::Vector3d::Zero()};
+  Eigen::Vector3d uav_acc_{Eigen::Vector3d::Zero()};
 
   Eigen::Vector2d pld_rel_pos_{Eigen::Vector2d::Zero()};
   Eigen::Vector2d pld_rel_vel_{Eigen::Vector2d::Zero()};
@@ -134,6 +138,7 @@ class RobustTracker {
   Eigen::Vector3d pld_trim_est_;
 
   Eigen::Vector3d thrust_sp_;
+  Eigen::Vector3d thrust_act_;
   double yaw_sp_;
 
   std::mutex mtx_;

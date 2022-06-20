@@ -32,7 +32,7 @@ void RobustTracker::computeControlOutput(std::uint64_t t) {
   auto sync_force =
       -kUavMass * (trans_cross_feeding_rates_ + translational_sync_);
   auto motion_compensator =
-      -k_trim_ * (uav_vel + trans_cross_feeding_ - raw_cross_feeding_);
+      -k_trim_ * (uav_vel_ + trans_cross_feeding_ - raw_cross_feeding_);
   auto trans_compensator = -kPldMass * (trans_cross_feeding_rates_ +
                                         k_gen_trans_err_ * gen_trans_err_);
 
@@ -46,6 +46,19 @@ void RobustTracker::setPayloadTranslationalErrors(
   pld_pos_err_ = pld_pos_err;
   pld_vel_err_ = pld_vel_err;
   pld_vel_sp_ = pld_vel_sp;
+}
+
+void RobustTracker::setUavAcceleration(const Eigen::Vector3d& uav_acc) {
+  uav_acc_ = uav_acc;
+}
+
+void RobustTracker::setUavVelocity(const Eigen::Vector3d& uav_vel) {
+  uav_vel_ = uav_vel;
+  pld_abs_vel_ = uav_vel_ - pld_rel_vel_full_;
+}
+
+void RobustTracker::setActualThrust(const Eigen::Vector3d& thrust_act) {
+  thrust_act_ = thrust_act;
 }
 
 bool RobustTracker::setPayloadRelativePosition(
@@ -124,17 +137,16 @@ void RobustTracker::updateTranslationalErrors(double dt) {
 }
 
 void RobustTracker::updateDisturbanceEstimates(double dt) {
-  auto thrust = uav_att.inverse() * Eigen::Vector3d::UnitZ() * thrust_sp_.norm();
-
   uav_de_.integral.integrate(
-      B_frak_ * (kUavMass * uav_acc - thrust - kUavWeight - uav_de_.value), dt);
+      B_frak_ * (kUavMass * uav_acc_ - thrust_act_ - kUavWeight - uav_de_.value),
+      dt);
   uav_de_.value = uav_de_.gain * uav_de_.integral.value();
 
   proj_de_ = pld_rel_pos_full_ - uav_de_.value.dot(pld_rel_pos_full_) /
                                      kCableLenSq * pld_rel_pos_full_;
 
   // ∫ Σ(...) + Δ_T + (m_p + M_q) * g_I
-  total_de_.integral.integrate(total_de_.value + thrust_ + proj_de_, dt);
+  total_de_.integral.integrate(total_de_.value + thrust_act_ + proj_de_, dt);
   total_de_.value =
       total_de_.gain * (kSysMass * pld_abs_vel_ + kUavMass * pld_rel_vel_full_ -
                         total_de_.integral.value());
