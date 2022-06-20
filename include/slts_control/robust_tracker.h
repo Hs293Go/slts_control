@@ -33,12 +33,12 @@ class RobustTracker {
     k_trim_ = p.k_trim;
     k_swing_ = p.k_swing;
 
-    total_de_.scaling = p.total_de_scaling;
+    total_de_.gain = p.total_de_gain;
     if (!total_de_.integral.setBounds(p.total_de_ub, p.total_de_lb)) {
       return false;
     }
 
-    uav_de_.scaling = p.uav_de_scaling;
+    uav_de_.gain = p.uav_de_gain;
     if (!uav_de_.integral.setBounds(p.uav_de_ub, p.uav_de_lb)) {
       return false;
     }
@@ -72,7 +72,7 @@ class RobustTracker {
 
  private:
   struct DisturbanceEstimate {
-    double scaling;
+    double gain;
     math::Integral<Eigen::Vector3d> integral;
     Eigen::Vector3d value;
   };

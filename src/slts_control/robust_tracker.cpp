@@ -128,16 +128,16 @@ void RobustTracker::updateDisturbanceEstimates(double dt) {
 
   uav_de_.integral.integrate(
       B_frak_ * (kUavMass * uav_acc - thrust - kUavWeight - uav_de_.value), dt);
-  uav_de_.value = uav_de_.scaling * uav_de_.integral.value();
+  uav_de_.value = uav_de_.gain * uav_de_.integral.value();
 
   proj_de_ = pld_rel_pos_full_ - uav_de_.value.dot(pld_rel_pos_full_) /
                                      kCableLenSq * pld_rel_pos_full_;
 
   // ∫ Σ(...) + Δ_T + (m_p + M_q) * g_I
   total_de_.integral.integrate(total_de_.value + thrust_ + proj_de_, dt);
-  total_de_.value = total_de_.scaling *
-                    (kSysMass * pld_abs_vel_ + kUavMass * pld_rel_vel_full_ -
-                     total_de_.integral.value());
+  total_de_.value =
+      total_de_.gain * (kSysMass * pld_abs_vel_ + kUavMass * pld_rel_vel_full_ -
+                        total_de_.integral.value());
 
   computePayloadStateEstimates();
 }
