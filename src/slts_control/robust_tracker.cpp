@@ -36,7 +36,7 @@ void RobustTracker::computeControlOutput(std::uint64_t t) {
   auto trans_compensator = -kPldMass * (trans_cross_feeding_rates_ +
                                         k_gen_trans_err_ * gen_trans_err_);
 
-  auto trim_force = -kUavWeight + pld_trim_est_ - proj_de_.value;
+  auto trim_force = -kUavWeight + pld_trim_est_ - proj_de_;
   thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
 }
 
@@ -70,6 +70,8 @@ bool RobustTracker::setPayloadRelativePosVel(
 }
 
 bool RobustTracker::computeFullVelocity() {
+  using std::sqrt;
+  pld_rel_pos_full_.head<2>() = pld_rel_pos_;
   pld_rel_vel_full_.head<2>() = pld_rel_vel_;
   const Eigen::Vector2d swing_error = pld_rel_pos_ - pld_rel_pos_sp_est_;
   const Eigen::Vector2d gen_swing_speed = pld_rel_vel_ + swing_error;
@@ -81,8 +83,12 @@ bool RobustTracker::computeFullVelocity() {
               pld_rel_pos_ * pld_rel_pos_.transpose() / kCableLenSq;
   const double sq_nrm = pld_rel_pos_.squaredNorm();
   if (sq_nrm < kCableLenSq) {
-    const double iz_sq = 1.0 / (kCableLenSq - sq_nrm);
-    const double iz = sqrt(iz_sq);
+    const double z_sq = kCableLenSq - sq_nrm;
+    const double z = sqrt(z_sq);
+    const double iz_sq = 1.0 / z_sq;
+    const double iz = 1.0 / z;
+
+    pld_rel_pos_full_.z() = z;
 
     // We compute only 3rd row of the B-matrix, since the 1-2 rows of the
     // B-matrix is identity
@@ -95,8 +101,7 @@ bool RobustTracker::computeFullVelocity() {
         iz;
     translational_sync_.z() += B_factor_rate.dot(swing_error);
 
-    const Eigen::Vector2d B_rc =
-        -sqrt(kCableLenSq - sq_nrm) / kCableLenSq * pld_rel_pos_;
+    const Eigen::Vector2d B_rc = -z / kCableLenSq * pld_rel_pos_;
     B_frak_ << B_lc, B_rc, B_rc.transpose(), sq_nrm / kCableLenSq;
     return true;
   }
@@ -121,12 +126,15 @@ void RobustTracker::updateTranslationalErrors(double dt) {
 void RobustTracker::updateDisturbanceEstimates(double dt) {
   auto thrust = uav_att.inverse() * Eigen::Vector3d::UnitZ() * thrust_sp_.norm();
 
-  proj_de_.integral.integrate(
-      B_frak_ * (kUavMass * uav_acc - thrust - kUavWeight - proj_de_.value), dt);
-  proj_de_.value = proj_de_.scaling * proj_de_.integral.value();
+  uav_de_.integral.integrate(
+      B_frak_ * (kUavMass * uav_acc - thrust - kUavWeight - uav_de_.value), dt);
+  uav_de_.value = uav_de_.scaling * uav_de_.integral.value();
+
+  proj_de_ = pld_rel_pos_full_ - uav_de_.value.dot(pld_rel_pos_full_) /
+                                     kCableLenSq * pld_rel_pos_full_;
 
   // ∫ Σ(...) + Δ_T + (m_p + M_q) * g_I
-  total_de_.integral.integrate(total_de_.value + thrust_ + proj_de_.value, dt);
+  total_de_.integral.integrate(total_de_.value + thrust_ + proj_de_, dt);
   total_de_.value = total_de_.scaling *
                     (kSysMass * pld_abs_vel_ + kUavMass * pld_rel_vel_full_ -
                      total_de_.integral.value());

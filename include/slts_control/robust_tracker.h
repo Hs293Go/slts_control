@@ -38,8 +38,8 @@ class RobustTracker {
       return false;
     }
 
-    proj_de_.scaling = p.proj_de_scaling;
-    if (!proj_de_.integral.setBounds(p.proj_de_ub, p.proj_de_lb)) {
+    uav_de_.scaling = p.uav_de_scaling;
+    if (!uav_de_.integral.setBounds(p.uav_de_ub, p.uav_de_lb)) {
       return false;
     }
 
@@ -108,6 +108,7 @@ class RobustTracker {
 
   math::Integral<Eigen::Vector3d> filt_cross_feeding_;
   Eigen::Vector3d thrust_;
+  Eigen::Vector3d pld_rel_pos_full_;
   Eigen::Vector3d pld_rel_vel_full_;
   Eigen::Vector3d translational_sync_;
   Eigen::Vector3d pld_pos_err_;
@@ -123,8 +124,10 @@ class RobustTracker {
   // dT
   DisturbanceEstimate total_de_;
 
+  DisturbanceEstimate uav_de_;
+
   // d⊥
-  DisturbanceEstimate proj_de_;
+  Eigen::Vector3d proj_de_;
 
   // r_d = l f_dxy / ||f_xdy||
   Eigen::Vector2d pld_rel_pos_sp_est_;
