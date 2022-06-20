@@ -43,6 +43,8 @@ class RobustTracker {
       return false;
     }
 
+    k_filter_gain_ = p.k_filter_gain;
+    k_filter_leak_ = p.k_filter_leak;
     if (!filt_cross_feeding_.setBounds(p.filt_cross_feeding_ub,
                                        p.filt_cross_feeding_lb)) {
       return false;
@@ -64,6 +66,7 @@ class RobustTracker {
                                 const Eigen::Vector2d& pld_rel_vel);
 
   void setPayloadTranslationalErrors(const Eigen::Vector3d& pld_pos_err,
+                                     const Eigen::Vector3d& pld_vel_err_rates,
                                      const Eigen::Vector3d& pld_vel_err,
                                      const Eigen::Vector3d& pld_vel_sp);
 
@@ -94,6 +97,7 @@ class RobustTracker {
   const double kCableLenSq;
   const Eigen::Vector3d kPldWeight;
   const Eigen::Vector3d kUavWeight;
+  const Eigen::Vector3d kSysWeight;
 
   double k_pos_err_;
   double k_gen_trans_err_;
