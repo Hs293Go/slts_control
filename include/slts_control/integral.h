@@ -26,12 +26,21 @@ void setEigenObj(Eigen::DenseBase<Derived2>& dst,
 
 }  // namespace details
 
-template <typename Obj>
+template <typename _MatrixType>
 class Integral {
  public:
-  Integral() : value_(Obj::Zero()) {}
+  using MatrixType = _MatrixType;
+  enum {
+    Size = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    Options = MatrixType::Options,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+
+  Integral() : value_(MatrixType::Zero()) {}
+
   template <typename Derived>
-  Integral(const Eigen::MatrixBase<Derived>& ic) : value_(ic) {}
+  explicit Integral(const Eigen::MatrixBase<Derived>& ic) : value_(ic) {}
 
   template <typename T1, typename T2>
   bool setBounds(T1&& ub, T2&& lb) {
@@ -54,12 +63,12 @@ class Integral {
     }
   }
 
-  const Obj& value() const { return value_; }
+  const MatrixType& value() const { return value_; }
 
  private:
-  Obj value_;
-  Obj ub_;
-  Obj lb_;
+  MatrixType value_;
+  MatrixType ub_;
+  MatrixType lb_;
   bool bounds_set_;
 };
 }  // namespace math
