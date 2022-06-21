@@ -8,6 +8,7 @@
 #include <jsoncpp/json/json.h>
 
 #include <Eigen/Core>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <mutex>
@@ -23,7 +24,30 @@ MATCHER_P(ContainsKey, key, key + (negation ? " not "s : " "s) + "found") {
 
 class TestController : public ::testing::Test {
  public:
-  TestController() : tracker(Properties()) { readFromFile(); }
+  TestController() : tracker(Properties()) {
+    readFromFile();
+
+    struct Params {
+      double k_pos_err = 0.24;
+      double k_gen_trans_err = 0.10;
+      double k_trim = 5;
+      double k_swing = 0.15;
+      double total_de_gain = 0.5;
+      double total_de_ub = 10.0;
+      double total_de_lb = -10.0;
+
+      double uav_de_gain = 0.9;
+      double uav_de_ub = 10.0;
+      double uav_de_lb = -10.0;
+
+      double k_filter_leak = 0.4;
+      double k_filter_gain = 0.2;
+      double filt_cross_feeding_lb = -1.0;
+      double filt_cross_feeding_ub = 1.0;
+    };
+
+    tracker.setParams(Params{});
+  }
 
   std::unordered_map<std::string, Eigen::MatrixXd> dataset;
   control::RobustTracker tracker;
@@ -74,6 +98,30 @@ TEST_F(TestController, testDataFileKeys) {
   ASSERT_THAT(dataset, ContainsKey("proj_de_est_err"));
   ASSERT_THAT(dataset, ContainsKey("total_de_est_err"));
   ASSERT_THAT(dataset, ContainsKey("pld_swing_est_err"));
+}
+
+TEST_F(TestController, testController) {
+  int data_sz = dataset["tout"].size();
+
+  for (int i = 0; i < data_sz - 1; ++i) {
+    tracker.setPayloadRelativePosVel(-dataset["pld_rel_pos"].col(i),
+                                     -dataset["pld_rel_vel"].col(i));
+    tracker.setUavVelocity(dataset["uav_vel"].col(i));
+    tracker.setUavAcceleration(dataset["uav_acc"].col(i));
+    tracker.setActualThrust(dataset["thrust_act"].col(i));
+    tracker.setPayloadTranslationalErrors(
+        dataset["pld_pos_err"].col(i), dataset["pld_pos_err_rates"].col(i),
+        dataset["pld_vel_err"].col(i), dataset["pld_vel_sp"].col(0));
+
+    std::uint64_t ts = 1e9 * dataset["tout"].coeff(i + 1, 0);
+    tracker.computeControlOutput(ts);
+
+    const Eigen::Vector3d result = tracker.thrust_sp();
+    const Eigen::Vector3d expected = dataset["thrust_cmd"].col(i);
+    ASSERT_TRUE(result.isApprox(expected, 1e-10))
+        << "Comparison failed on iteration: " << i << " where time is " << ts
+        << " \n";
+  }
 }
 
 int main(int argc, char** argv) {
