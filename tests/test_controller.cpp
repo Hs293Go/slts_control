@@ -56,14 +56,18 @@ class TestController : public ::testing::Test {
 };
 
 TEST_F(TestController, testDataFileKeys) {
-  ASSERT_THAT(dataset, ContainsKey("pld_abs_vel"));
+  ASSERT_THAT(dataset, ContainsKey("uav_pos"));
+  ASSERT_THAT(dataset, ContainsKey("uav_vel"));
+  ASSERT_THAT(dataset, ContainsKey("uav_acc"));
   ASSERT_THAT(dataset, ContainsKey("pld_abs_pos"));
   ASSERT_THAT(dataset, ContainsKey("pld_rel_pos"));
   ASSERT_THAT(dataset, ContainsKey("pld_abs_vel"));
   ASSERT_THAT(dataset, ContainsKey("pld_rel_vel"));
-  ASSERT_THAT(dataset, ContainsKey("act_force"));
+  ASSERT_THAT(dataset, ContainsKey("thrust_cmd"));
+  ASSERT_THAT(dataset, ContainsKey("thrust_act"));
   ASSERT_THAT(dataset, ContainsKey("pld_pos_err"));
   ASSERT_THAT(dataset, ContainsKey("pld_vel_err"));
+  ASSERT_THAT(dataset, ContainsKey("pld_pos_err_rates"));
   ASSERT_THAT(dataset, ContainsKey("pld_vel_sp"));
   ASSERT_THAT(dataset, ContainsKey("proj_de"));
   ASSERT_THAT(dataset, ContainsKey("total_de"));
