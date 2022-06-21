@@ -102,6 +102,9 @@ class RobustTracker {
   double k_filter_gain_;
   double k_filter_leak_;
   bool param_set_{false};
+
+  double iz_;
+
   Eigen::Vector3d uav_vel_{Eigen::Vector3d::Zero()};
   Eigen::Vector3d uav_acc_{Eigen::Vector3d::Zero()};
 
@@ -133,10 +136,7 @@ class RobustTracker {
   // d⊥
   Eigen::Vector3d proj_de_;
 
-  // r_d = l f_dxy / ||f_xdy||
-  Eigen::Vector2d pld_rel_pos_sp_est_;
   Eigen::Vector3d pld_trim_est_;
-
   Eigen::Vector3d thrust_sp_;
   Eigen::Vector3d thrust_act_;
   double yaw_sp_;
