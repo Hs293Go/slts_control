@@ -104,8 +104,8 @@ TEST_F(TestController, testController) {
   int data_sz = dataset["tout"].size();
 
   for (int i = 0; i < data_sz - 1; ++i) {
-    tracker.setPayloadRelativePosVel(-dataset["pld_rel_pos"].col(i),
-                                     -dataset["pld_rel_vel"].col(i));
+    ASSERT_TRUE(tracker.setPayloadRelativePosVel(
+        -dataset["pld_rel_pos"].col(i), -dataset["pld_rel_vel"].col(i)));
     tracker.setUavVelocity(dataset["uav_vel"].col(i));
     tracker.setUavAcceleration(dataset["uav_acc"].col(i));
     tracker.setActualThrust(dataset["thrust_act"].col(i));

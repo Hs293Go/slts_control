@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 find_package(Eigen3 REQUIRED)
 
 set(COMPILE_OPTS
+    -Werror
     -Wall
     -Wextra
     -Wpedantic

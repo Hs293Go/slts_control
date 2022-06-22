@@ -59,11 +59,11 @@ class RobustTracker {
 
   void setActualThrust(const Eigen::Vector3d& thrust_act);
 
-  bool setPayloadRelativePosition(std::uint64_t time,
-                                  const Eigen::Vector2d& pld_rel_pos);
+  [[nodiscard]] bool setPayloadRelativePosition(
+      std::uint64_t time, const Eigen::Vector2d& pld_rel_pos);
 
-  bool setPayloadRelativePosVel(const Eigen::Vector2d& pld_rel_pos,
-                                const Eigen::Vector2d& pld_rel_vel);
+  [[nodiscard]] bool setPayloadRelativePosVel(
+      const Eigen::Vector2d& pld_rel_pos, const Eigen::Vector2d& pld_rel_vel);
 
   void setPayloadTranslationalErrors(const Eigen::Vector3d& pld_pos_err,
                                      const Eigen::Vector3d& pld_vel_err_rates,
