@@ -1,0 +1,31 @@
+image: ubuntu:focal
+
+stages:
+  - build
+  - test
+
+before_script:
+  - apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y git g++ cmake libeigen3-dev libjsoncpp-dev
+
+build:
+  stage: build
+  script:
+    - cmake -B build -S .
+    - cmake --build build --target all
+  artifacts:
+    paths:
+      - build/librobust_tracker.a
+
+RunGTest:
+  stage: test
+  script:
+    - cmake -B build -S .
+    - cmake --build build --target all
+    - build/tests/test_controller
+
+RunCTest:
+  stage: test
+  script:
+    - cmake -B build -S .
+    - cmake --build build --target all
+    - ctest --output-on-failure -j6 --test-dir build
