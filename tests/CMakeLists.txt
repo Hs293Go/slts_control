@@ -28,3 +28,6 @@ target_link_libraries(
           GTest::gtest_main
           jsoncpp
           robust_tracker)
+
+include(GoogleTest)
+gtest_discover_tests(test_controller)

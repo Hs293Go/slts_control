@@ -27,5 +27,6 @@ target_link_libraries(system_model Eigen3::Eigen)
 
 include(CTest)
 if(BUILD_TESTING)
+  enable_testing()
   add_subdirectory(tests)
 endif()
