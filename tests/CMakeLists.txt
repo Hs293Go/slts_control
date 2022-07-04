@@ -6,8 +6,11 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG main)
 
-FetchContent_MakeAvailable(googletest)
-find_package(jsoncpp REQUIRED)
+FetchContent_Declare(
+  json
+  URL https://github.com/nlohmann/json/releases/download/v3.10.5/json.tar.xz)
+
+FetchContent_MakeAvailable(googletest json)
 
 add_executable(test_controller test_controller.cpp)
 target_include_directories(test_controller PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -19,7 +22,7 @@ target_link_libraries(
           GTest::gtest
           GTest::gmock_main
           GTest::gtest_main
-          jsoncpp
+          nlohmann_json::nlohmann_json
           robust_tracker)
 
 include(GoogleTest)

@@ -5,13 +5,13 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <jsoncpp/json/json.h>
 
 #include <Eigen/Core>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <mutex>
+#include <nlohmann/json.hpp>
 #include <unordered_map>
 
 #include "slts_control/robust_tracker.h"
@@ -38,19 +38,18 @@ class TestController : public ::testing::Test {
 
  private:
   void readFromFile() {
+    using nlohmann::json;
     auto file = std::filesystem::path(__FILE__).replace_extension(".json");
 
-    Json::Value root;
+    json root;
     std::ifstream ifs(file);
     ifs >> root;
 
-    for (const auto& key : root.getMemberNames()) {
-      const auto& it = root[key];
+    for (const auto& [key, it] : root.items()) {
       const auto& sz = it["size"];
       const auto& val = it["value"];
-      dataset.emplace(key, Eigen::MatrixXd(sz[0].asInt(), sz[1].asInt()));
-      std::transform(val.begin(), val.end(), dataset[key].data(),
-                     std::mem_fn(&Json::Value::asDouble));
+      dataset.emplace(key, Eigen::MatrixXd(int(sz[0]), int(sz[1])));
+      std::copy(val.begin(), val.end(), dataset[key].data());
     }
   }
 };
