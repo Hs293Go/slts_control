@@ -42,6 +42,37 @@ void RobustTracker::computeControlOutput(std::uint64_t t) {
   thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
 }
 
+bool RobustTracker::setParams(const Params& p) {
+  k_pos_err_ = p.k_pos_err;
+  k_gen_trans_err_ = p.k_gen_trans_err;
+  k_trim_ = p.k_trim;
+  k_swing_ = p.k_swing;
+
+  auto set_bounds_for = [](auto&& cls, auto&& lb, auto&& ub) {
+    return std::visit(
+        [&cls](auto&& lb, auto&& ub) { return cls.setBounds(lb, ub); }, lb, ub);
+  };
+
+  total_de_.gain = p.total_de_gain;
+  if (!set_bounds_for(total_de_.integral, p.total_de_ub, p.total_de_lb)) {
+    return false;
+  }
+
+  uav_de_.gain = p.uav_de_gain;
+  if (!set_bounds_for(uav_de_.integral, p.uav_de_ub, p.uav_de_lb)) {
+    return false;
+  }
+
+  k_filter_gain_ = p.k_filter_gain;
+  k_filter_leak_ = p.k_filter_leak;
+  if (!set_bounds_for(filt_cross_feeding_, p.filt_cross_feeding_ub,
+                      p.filt_cross_feeding_lb)) {
+    return false;
+  }
+  param_set_ = true;
+  return true;
+}
+
 void RobustTracker::setPayloadTranslationalErrors(
     const Eigen::Vector3d& pld_pos_err, const Eigen::Vector3d& pld_pos_err_rates,
     const Eigen::Vector3d& pld_vel_err, const Eigen::Vector3d& pld_vel_sp) {

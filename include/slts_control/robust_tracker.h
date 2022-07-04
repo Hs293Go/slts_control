@@ -10,6 +10,7 @@
 #include <atomic>
 #include <cstdint>
 #include <mutex>
+#include <variant>
 
 #include "slts_control/integral.h"
 
@@ -17,6 +18,8 @@ namespace control {
 
 class RobustTracker {
  public:
+  struct Params;
+
   RobustTracker(double uav_mass, double pld_mass, double cable_length);
 
   RobustTracker() = delete;
@@ -25,32 +28,7 @@ class RobustTracker {
   RobustTracker& operator=(const RobustTracker&) = delete;
   RobustTracker& operator=(RobustTracker&&) = delete;
 
-  template <typename T>
-  bool setParams(const T& p) {
-    k_pos_err_ = p.k_pos_err;
-    k_gen_trans_err_ = p.k_gen_trans_err;
-    k_trim_ = p.k_trim;
-    k_swing_ = p.k_swing;
-
-    total_de_.gain = p.total_de_gain;
-    if (!total_de_.integral.setBounds(p.total_de_ub, p.total_de_lb)) {
-      return false;
-    }
-
-    uav_de_.gain = p.uav_de_gain;
-    if (!uav_de_.integral.setBounds(p.uav_de_ub, p.uav_de_lb)) {
-      return false;
-    }
-
-    k_filter_gain_ = p.k_filter_gain;
-    k_filter_leak_ = p.k_filter_leak;
-    if (!filt_cross_feeding_.setBounds(p.filt_cross_feeding_ub,
-                                       p.filt_cross_feeding_lb)) {
-      return false;
-    }
-    param_set_ = true;
-    return true;
-  }
+  bool setParams(const Params& p);
 
   void setUavVelocity(const Eigen::Vector3d& uav_vel);
 
@@ -150,6 +128,24 @@ class RobustTracker {
   std::atomic_uint64_t integrator_last_time_;
 };
 
+struct RobustTracker::Params {
+  double k_pos_err = 0.24;
+  double k_gen_trans_err = 0.10;
+  double k_trim = 5;
+  double k_swing = 0.15;
+  double total_de_gain = 0.5;
+  std::variant<double, Eigen::Vector3d> total_de_ub{10.0};
+  std::variant<double, Eigen::Vector3d> total_de_lb{-10.0};
+
+  double uav_de_gain = 0.9;
+  std::variant<double, Eigen::Vector3d> uav_de_ub{10.0};
+  std::variant<double, Eigen::Vector3d> uav_de_lb{-10.0};
+
+  double k_filter_leak = 0.4;
+  double k_filter_gain = 0.2;
+  std::variant<double, Eigen::Vector3d> filt_cross_feeding_ub{10.0};
+  std::variant<double, Eigen::Vector3d> filt_cross_feeding_lb{-10.0};
+};
 }  // namespace control
 
 #endif  // ROBUST_TRACKER_H

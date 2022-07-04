@@ -29,27 +29,8 @@ class TestController : public ::testing::Test {
 
   TestController() : tracker(kUavMass, kPldMass, kCableLength) {
     readFromFile();
-
-    struct Params {
-      double k_pos_err = 0.24;
-      double k_gen_trans_err = 0.10;
-      double k_trim = 5;
-      double k_swing = 0.15;
-      double total_de_gain = 0.5;
-      double total_de_ub = 10.0;
-      double total_de_lb = -10.0;
-
-      double uav_de_gain = 0.9;
-      double uav_de_ub = 10.0;
-      double uav_de_lb = -10.0;
-
-      double k_filter_leak = 0.4;
-      double k_filter_gain = 0.2;
-      double filt_cross_feeding_lb = -1.0;
-      double filt_cross_feeding_ub = 1.0;
-    };
-
-    tracker.setParams(Params{});
+    control::RobustTracker::Params p;
+    tracker.setParams(p);
   }
 
   std::unordered_map<std::string, Eigen::MatrixXd> dataset;

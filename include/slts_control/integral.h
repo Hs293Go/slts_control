@@ -13,15 +13,15 @@ auto Clamp(const Eigen::MatrixBase<Derived1>& x,
   return x.cwiseMax(lb).cwiseMin(ub);
 }
 
-template <typename Derived, typename Scalar>
-void setEigenObj(Eigen::DenseBase<Derived>& dst, Scalar src) {
+template <typename Derived>
+void setEigenObj(Eigen::DenseBase<Derived>& dst, typename Derived::Scalar src) {
   dst.setConstant(src);
 }
 
 template <typename Derived1, typename Derived2>
 void setEigenObj(Eigen::DenseBase<Derived2>& dst,
                  const Eigen::DenseBase<Derived1>& src) {
-  dst.setConstant(src);
+  dst = src;
 }
 
 }  // namespace details
