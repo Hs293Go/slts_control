@@ -14,7 +14,6 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "slts_control/common.h"
 #include "slts_control/robust_tracker.h"
 
 using namespace std::string_literals;
@@ -24,7 +23,11 @@ MATCHER_P(ContainsKey, key, key + (negation ? " not "s : " "s) + "found") {
 
 class TestController : public ::testing::Test {
  public:
-  TestController() : tracker(Properties()) {
+  static constexpr double kCableLength = 0.98;
+  static constexpr double kUavMass = 1.63;
+  static constexpr double kPldMass = 0.5;
+
+  TestController() : tracker(kUavMass, kPldMass, kCableLength) {
     readFromFile();
 
     struct Params {
@@ -68,14 +71,6 @@ class TestController : public ::testing::Test {
       std::transform(val.begin(), val.end(), dataset[key].data(),
                      std::mem_fn(&Json::Value::asDouble));
     }
-  }
-
-  static common::SLTSProperty Properties() {
-    common::SLTSProperty p;
-    p.cable_length = 0.98;
-    p.uav_mass = 1.63;
-    p.pld_mass = 0.5;
-    return p;
   }
 };
 

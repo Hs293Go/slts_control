@@ -11,11 +11,12 @@
 #include "slts_control/eigen_utils.h"
 
 namespace control {
-RobustTracker::RobustTracker(const common::SLTSProperty& slts_property)
-    : kUavMass(slts_property.uav_mass),
-      kPldMass(slts_property.pld_mass),
+RobustTracker::RobustTracker(double uav_mass, double pld_mass,
+                             double cable_length)
+    : kUavMass(uav_mass),
+      kPldMass(pld_mass),
       kSysMass(kUavMass + kPldMass),
-      kCableLen(slts_property.cable_length),
+      kCableLen(cable_length),
       kCableLenSq(kCableLen * kCableLen),
       kPldWeight(kPldMass * 9.80665 * Eigen::Vector3d::UnitZ()),
       kUavWeight(kUavMass * 9.80665 * Eigen::Vector3d::UnitZ()),

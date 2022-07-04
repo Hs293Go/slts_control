@@ -11,14 +11,13 @@
 #include <cstdint>
 #include <mutex>
 
-#include "slts_control/common.h"
 #include "slts_control/integral.h"
 
 namespace control {
 
 class RobustTracker {
  public:
-  RobustTracker(const common::SLTSProperty& slts_property);
+  RobustTracker(double uav_mass, double pld_mass, double cable_length);
 
   RobustTracker() = delete;
   RobustTracker(const RobustTracker&) = delete;
