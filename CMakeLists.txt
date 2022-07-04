@@ -20,11 +20,6 @@ target_include_directories(robust_tracker PRIVATE include)
 target_compile_options(robust_tracker PUBLIC ${COMPILE_OPTS})
 target_link_libraries(robust_tracker PUBLIC Eigen3::Eigen)
 
-add_library(system_model src/${PROJECT_NAME}/system_model.cpp)
-target_include_directories(system_model PRIVATE include)
-target_compile_options(system_model PUBLIC ${COMPILE_OPTS})
-target_link_libraries(system_model Eigen3::Eigen)
-
 include(CTest)
 if(BUILD_TESTING)
   enable_testing()
