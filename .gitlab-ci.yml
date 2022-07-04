@@ -20,12 +20,12 @@ RunGTest:
   stage: test
   script:
     - cmake -B build -S .
-    - cmake --build build --target all
+    - cmake --build build --target test_controller
     - build/tests/test_controller
 
 RunCTest:
   stage: test
   script:
     - cmake -B build -S .
-    - cmake --build build --target all
+    - cmake --build build --target test_controller
     - ctest --output-on-failure -j6 --test-dir build
