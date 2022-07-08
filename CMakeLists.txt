@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.14.0)
 project(slts_control VERSION 1.0.0)
 
 include(GNUInstallDirs)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 find_package(Eigen3 REQUIRED)
 

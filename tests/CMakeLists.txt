@@ -13,6 +13,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest json)
 
 add_executable(test_controller test_controller.cpp)
+target_compile_definitions(
+  test_controller
+  PRIVATE TEST_DATAFILE="${CMAKE_CURRENT_SOURCE_DIR}/test_controller.json")
 target_include_directories(test_controller PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 target_link_libraries(

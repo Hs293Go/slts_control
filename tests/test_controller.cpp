@@ -8,7 +8,6 @@
 
 #include <Eigen/Core>
 #include <cstdint>
-#include <filesystem>
 #include <fstream>
 #include <mutex>
 #include <nlohmann/json.hpp>
@@ -17,6 +16,12 @@
 #include "slts_control/robust_tracker.h"
 
 using namespace std::string_literals;
+
+#ifndef TEST_DATAFILE
+#define TEST_DATAFILE \
+  "YOU DID NOT SET THE TEST_DATAFILE MACRO CORRECTLY WHEN COMPILING THIS FILE!"
+#endif
+
 MATCHER_P(ContainsKey, key, key + (negation ? " not "s : " "s) + "found") {
   return arg.count(key) > 0;
 }
@@ -28,7 +33,6 @@ class TestController : public ::testing::Test {
   static constexpr double kPldMass = 0.5;
 
   TestController() : tracker(kUavMass, kPldMass, kCableLength) {
-    readFromFile();
     control::RobustTracker::Params p;
     tracker.setParams(p);
   }
@@ -36,14 +40,13 @@ class TestController : public ::testing::Test {
   std::unordered_map<std::string, Eigen::MatrixXd> dataset;
   control::RobustTracker tracker;
 
- private:
-  void readFromFile() {
+  void SetUp() {
     using nlohmann::json;
-    auto file = std::filesystem::path(__FILE__).replace_extension(".json");
 
     json root;
-    std::ifstream ifs(file);
-    ifs >> root;
+    std::ifstream ifs(TEST_DATAFILE);
+    ASSERT_TRUE(ifs.is_open()) << "Failed to open: " << TEST_DATAFILE << "\n";
+    ASSERT_NO_THROW(ifs >> root) << "Json parsing failed!\n";
 
     for (const auto& [key, it] : root.items()) {
       const auto& sz = it["size"];
