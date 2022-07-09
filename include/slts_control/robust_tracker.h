@@ -134,17 +134,17 @@ struct RobustTracker::Params {
   double k_trim = 5;
   double k_swing = 0.15;
   double total_de_gain = 0.5;
-  std::variant<double, Eigen::Vector3d> total_de_ub{10.0};
-  std::variant<double, Eigen::Vector3d> total_de_lb{-10.0};
+  Eigen::VectorXd total_de_ub{Eigen::Vector3d::Constant(10.0)};
+  Eigen::VectorXd total_de_lb{Eigen::Vector3d::Constant(-10.0)};
 
   double uav_de_gain = 0.9;
-  std::variant<double, Eigen::Vector3d> uav_de_ub{10.0};
-  std::variant<double, Eigen::Vector3d> uav_de_lb{-10.0};
+  Eigen::VectorXd uav_de_ub{Eigen::Vector3d::Constant(10.0)};
+  Eigen::VectorXd uav_de_lb{Eigen::Vector3d::Constant(-10.0)};
 
   double k_filter_leak = 0.4;
   double k_filter_gain = 0.2;
-  std::variant<double, Eigen::Vector3d> filt_cross_feeding_ub{10.0};
-  std::variant<double, Eigen::Vector3d> filt_cross_feeding_lb{-10.0};
+  Eigen::VectorXd filt_cross_feeding_ub{Eigen::Vector3d::Constant(10.0)};
+  Eigen::VectorXd filt_cross_feeding_lb{Eigen::Vector3d::Constant(-10.0)};
 };
 }  // namespace control
 

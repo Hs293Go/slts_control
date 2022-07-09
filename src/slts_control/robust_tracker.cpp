@@ -48,25 +48,40 @@ bool RobustTracker::setParams(const Params& p) {
   k_trim_ = p.k_trim;
   k_swing_ = p.k_swing;
 
-  auto set_bounds_for = [](auto&& cls, auto&& lb, auto&& ub) {
-    return std::visit(
-        [&cls](auto&& lb, auto&& ub) { return cls.setBounds(lb, ub); }, lb, ub);
-  };
-
   total_de_.gain = p.total_de_gain;
-  if (!set_bounds_for(total_de_.integral, p.total_de_ub, p.total_de_lb)) {
+  if (p.total_de_ub.size() != 1 && p.total_de_ub.size() != 3) {
+    return false;
+  }
+  if (p.total_de_lb.size() != 1 && p.total_de_lb.size() != 3) {
+    return false;
+  }
+  if (!total_de_.integral.setBounds(p.total_de_ub, p.total_de_lb)) {
     return false;
   }
 
   uav_de_.gain = p.uav_de_gain;
-  if (!set_bounds_for(uav_de_.integral, p.uav_de_ub, p.uav_de_lb)) {
+  if (p.uav_de_ub.size() != 1 && p.uav_de_ub.size() != 3) {
+    return false;
+  }
+  if (p.uav_de_lb.size() != 1 && p.uav_de_lb.size() != 3) {
+    return false;
+  }
+  if (!uav_de_.integral.setBounds(p.uav_de_ub, p.uav_de_lb)) {
     return false;
   }
 
   k_filter_gain_ = p.k_filter_gain;
   k_filter_leak_ = p.k_filter_leak;
-  if (!set_bounds_for(filt_cross_feeding_, p.filt_cross_feeding_ub,
-                      p.filt_cross_feeding_lb)) {
+  if (p.filt_cross_feeding_ub.size() != 1 &&
+      p.filt_cross_feeding_ub.size() != 3) {
+    return false;
+  }
+  if (p.filt_cross_feeding_lb.size() != 1 &&
+      p.filt_cross_feeding_lb.size() != 3) {
+    return false;
+  }
+  if (!filt_cross_feeding_.setBounds(p.filt_cross_feeding_ub,
+                                     p.filt_cross_feeding_lb)) {
     return false;
   }
   param_set_ = true;

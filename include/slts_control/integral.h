@@ -21,6 +21,10 @@ void setEigenObj(Eigen::DenseBase<Derived>& dst, typename Derived::Scalar src) {
 template <typename Derived1, typename Derived2>
 void setEigenObj(Eigen::DenseBase<Derived2>& dst,
                  const Eigen::DenseBase<Derived1>& src) {
+  if (src.size() == 1) {
+    setEigenObj(dst, src.value());
+    return;
+  }
   dst = src;
 }
 
