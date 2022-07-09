@@ -20,7 +20,6 @@ target_include_directories(
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
          "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
   PRIVATE include)
-target_compile_features(robust_tracker PUBLIC cxx_std_17)
 target_compile_options(robust_tracker PUBLIC ${COMPILE_OPTS})
 target_link_libraries(robust_tracker PUBLIC Eigen3::Eigen)
 

@@ -47,7 +47,9 @@ class TestController : public ::testing::Test {
     ASSERT_TRUE(ifs.is_open()) << "Failed to open: " << TEST_DATAFILE << "\n";
     ASSERT_NO_THROW(ifs >> root) << "Json parsing failed!\n";
 
-    for (const auto& [key, it] : root.items()) {
+    for (const auto& tup : root.items()) {
+      const auto& key = tup.key();
+      const auto& it = tup.value();
       const auto& sz = it["size"];
       const auto& val = it["value"];
       dataset.emplace(key, Eigen::MatrixXd(int(sz[0]), int(sz[1])));

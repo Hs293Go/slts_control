@@ -18,6 +18,7 @@ namespace control {
 
 class RobustTracker {
  public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   struct Params;
 
   RobustTracker(double uav_mass, double pld_mass, double cable_length);
@@ -36,11 +37,11 @@ class RobustTracker {
 
   void setActualThrust(const Eigen::Vector3d& thrust_act);
 
-  [[nodiscard]] bool setPayloadRelativePosition(
-      std::uint64_t time, const Eigen::Vector2d& pld_rel_pos);
+  bool setPayloadRelativePosition(std::uint64_t time,
+                                  const Eigen::Vector2d& pld_rel_pos);
 
-  [[nodiscard]] bool setPayloadRelativePosVel(
-      const Eigen::Vector2d& pld_rel_pos, const Eigen::Vector2d& pld_rel_vel);
+  bool setPayloadRelativePosVel(const Eigen::Vector2d& pld_rel_pos,
+                                const Eigen::Vector2d& pld_rel_vel);
 
   void setPayloadTranslationalErrors(const Eigen::Vector3d& pld_pos_err,
                                      const Eigen::Vector3d& pld_vel_err_rates,
