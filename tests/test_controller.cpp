@@ -32,15 +32,14 @@ class TestController : public ::testing::Test {
   static constexpr double kUavMass = 1.63;
   static constexpr double kPldMass = 0.5;
 
-  TestController() : tracker(kUavMass, kPldMass, kCableLength) {
-    control::RobustTracker::Params p;
-    tracker.setParams(p);
-  }
+  TestController() : tracker(kUavMass, kPldMass, kCableLength) {}
 
   std::unordered_map<std::string, Eigen::MatrixXd> dataset;
   control::RobustTracker tracker;
 
   void SetUp() {
+    control::RobustTracker::Params p;
+    ASSERT_TRUE(tracker.setParams(p));
     using nlohmann::json;
 
     json root;
