@@ -12,14 +12,15 @@
 #include <mutex>
 #include <variant>
 
-#include "slts_control/integral.h"
+#include "slts_control/definitions.h"
 
 namespace control {
 
 class RobustTracker {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  struct Params;
+  using Params = RobustTrackerParams;
+  using InitialConditions = RobustTrackerInitialConditions;
 
   RobustTracker(double uav_mass, double pld_mass, double cable_length);
 
@@ -30,6 +31,9 @@ class RobustTracker {
   RobustTracker& operator=(RobustTracker&&) = delete;
 
   bool setParams(const Params& p);
+
+  bool setInitialConditions(std::uint64_t time,
+                            const InitialConditions& ic = {});
 
   void setUavVelocity(const Eigen::Vector3d& uav_vel);
 
@@ -54,11 +58,7 @@ class RobustTracker {
   inline double yaw_sp() const { return yaw_sp_; }
 
  private:
-  struct DisturbanceEstimate {
-    double gain;
-    math::Integral<Eigen::Vector3d> integral;
-    Eigen::Vector3d value;
-  };
+  using DisturbanceEstimate = details::DisturbanceEstimate;
 
   bool computeFullVelocity();
 
@@ -84,16 +84,15 @@ class RobustTracker {
   double k_filter_gain_;
   double k_filter_leak_;
   bool param_set_{false};
+  bool ic_set_{false};
 
   double iz_;
 
-  Eigen::Vector3d uav_vel_{Eigen::Vector3d::Zero()};
-  Eigen::Vector3d uav_acc_{Eigen::Vector3d::Zero()};
-
-  Eigen::Vector2d pld_rel_pos_{Eigen::Vector2d::Zero()};
-  Eigen::Vector2d pld_rel_vel_{Eigen::Vector2d::Zero()};
-  Eigen::Vector3d pld_vel_{Eigen::Vector3d::Zero()};
-  Eigen::Vector3d pld_abs_vel_{Eigen::Vector3d::Zero()};
+  Eigen::Vector3d uav_vel_;
+  Eigen::Vector3d uav_acc_;
+  Eigen::Vector2d pld_rel_pos_;
+  Eigen::Vector2d pld_rel_vel_;
+  Eigen::Vector3d pld_abs_vel_;
 
   math::Integral<Eigen::Vector3d> filt_cross_feeding_;
   Eigen::Vector3d thrust_;
@@ -129,24 +128,6 @@ class RobustTracker {
   std::atomic_uint64_t integrator_last_time_;
 };
 
-struct RobustTracker::Params {
-  double k_pos_err = 0.24;
-  double k_gen_trans_err = 0.10;
-  double k_trim = 5;
-  double k_swing = 0.15;
-  double total_de_gain = 0.5;
-  Eigen::VectorXd total_de_ub{Eigen::Vector3d::Constant(10.0)};
-  Eigen::VectorXd total_de_lb{Eigen::Vector3d::Constant(-10.0)};
-
-  double uav_de_gain = 0.9;
-  Eigen::VectorXd uav_de_ub{Eigen::Vector3d::Constant(10.0)};
-  Eigen::VectorXd uav_de_lb{Eigen::Vector3d::Constant(-10.0)};
-
-  double k_filter_leak = 0.4;
-  double k_filter_gain = 0.2;
-  Eigen::VectorXd filt_cross_feeding_ub{Eigen::Vector3d::Constant(10.0)};
-  Eigen::VectorXd filt_cross_feeding_lb{Eigen::Vector3d::Constant(-10.0)};
-};
 }  // namespace control
 
 #endif  // ROBUST_TRACKER_H

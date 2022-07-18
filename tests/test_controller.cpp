@@ -82,6 +82,7 @@ TEST_F(TestController, testDataFileKeys) {
 TEST_F(TestController, testController) {
   int data_sz = dataset["tout"].size();
 
+  tracker.setInitialConditions(0);
   for (int i = 0; i < data_sz - 1; ++i) {
     ASSERT_TRUE(tracker.setPayloadRelativePosVel(
         -dataset["pld_rel_pos"].col(i), -dataset["pld_rel_vel"].col(i)));

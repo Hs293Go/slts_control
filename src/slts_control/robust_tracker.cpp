@@ -23,7 +23,7 @@ RobustTracker::RobustTracker(double uav_mass, double pld_mass,
       kSysWeight(kPldWeight + kUavWeight) {}
 
 bool RobustTracker::computeControlOutput(std::uint64_t t) {
-  if (!param_set_) {
+  if (!param_set_ || !ic_set_) {
     return false;
   }
   auto last_time = integrator_last_time_.load();
@@ -90,6 +90,20 @@ bool RobustTracker::setParams(const Params& p) {
   }
   param_set_ = true;
   return true;
+}
+
+bool RobustTracker::setInitialConditions(std::uint64_t time,
+                                         const InitialConditions& ic) {
+  integrator_last_time_ = time;
+  pld_speed_diff_time = time;
+
+  uav_vel_ = ic.uav_vel;
+  uav_acc_ = ic.uav_acc;
+
+  if (!setPayloadRelativePosVel(ic.pld_rel_pos, ic.pld_rel_vel)) {
+    return ic_set_ = false;
+  }
+  return ic_set_ = true;
 }
 
 void RobustTracker::setPayloadTranslationalErrors(
