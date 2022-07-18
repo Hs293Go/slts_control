@@ -48,7 +48,7 @@ class RobustTracker {
                                      const Eigen::Vector3d& pld_vel_err,
                                      const Eigen::Vector3d& pld_vel_sp);
 
-  void computeControlOutput(std::uint64_t t);
+  bool computeControlOutput(std::uint64_t t);
 
   inline const Eigen::Vector3d& thrust_sp() const { return thrust_sp_; }
   inline double yaw_sp() const { return yaw_sp_; }

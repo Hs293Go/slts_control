@@ -22,7 +22,10 @@ RobustTracker::RobustTracker(double uav_mass, double pld_mass,
       kUavWeight(kUavMass * 9.80665 * Eigen::Vector3d::UnitZ()),
       kSysWeight(kPldWeight + kUavWeight) {}
 
-void RobustTracker::computeControlOutput(std::uint64_t t) {
+bool RobustTracker::computeControlOutput(std::uint64_t t) {
+  if (!param_set_) {
+    return false;
+  }
   auto last_time = integrator_last_time_.load();
   auto dt = 1e-9 * (t - last_time);
   updateDisturbanceEstimates(dt);
@@ -40,6 +43,7 @@ void RobustTracker::computeControlOutput(std::uint64_t t) {
 
   auto trim_force = -kUavWeight + pld_trim_est_ - proj_de_;
   thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
+  return true;
 }
 
 bool RobustTracker::setParams(const Params& p) {
