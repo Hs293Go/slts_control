@@ -18,8 +18,7 @@
 using namespace std::string_literals;
 
 #ifndef TEST_DATAFILE
-#define TEST_DATAFILE \
-  "YOU DID NOT SET THE TEST_DATAFILE MACRO CORRECTLY WHEN COMPILING THIS FILE!"
+#error YOU DID NOT SET THE TEST DATAFILE MACRO CORRECTLY WHEN COMPILING THIS FILE!
 #endif
 
 MATCHER_P(ContainsKey, key, key + (negation ? " not "s : " "s) + "found") {
