@@ -6,13 +6,11 @@ include(GNUInstallDirs)
 find_package(Eigen3 REQUIRED)
 
 set(COMPILE_OPTS
-    -Werror
-    -Wall
-    -Wextra
-    -Wpedantic
     "$<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>$<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>"
     "$<$<CONFIG:Debug>:-g3>"
     "$<$<CONFIG:Release>:-O3>")
+
+set(WARN_OPTS -Werror -Wall -Wextra -Wpedantic)
 
 add_library(robust_tracker src/${PROJECT_NAME}/robust_tracker.cpp)
 target_include_directories(
@@ -20,7 +18,10 @@ target_include_directories(
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
          "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
   PRIVATE include)
-target_compile_options(robust_tracker PUBLIC ${COMPILE_OPTS})
+target_compile_options(
+  robust_tracker
+  PUBLIC ${COMPILE_OPTS}
+  PRIVATE ${WARN_OPTS})
 target_link_libraries(robust_tracker PUBLIC Eigen3::Eigen)
 
 install(
