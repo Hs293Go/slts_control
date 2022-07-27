@@ -7,6 +7,9 @@ stages:
 before_script:
   - apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y git g++ cmake libeigen3-dev libjsoncpp-dev
 
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
 build:
   stage: build
   script:
