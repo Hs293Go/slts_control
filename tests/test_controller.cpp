@@ -90,14 +90,14 @@ TEST_F(TestController, testController) {
     tracker.setActualThrust(dataset["thrust_act"].col(i));
     tracker.setPayloadTranslationalErrors(
         dataset["pld_pos_err"].col(i), dataset["pld_pos_err_rates"].col(i),
-        dataset["pld_vel_err"].col(i), dataset["pld_vel_sp"].col(0));
+        dataset["pld_vel_err"].col(i), dataset["pld_vel_sp"].col(i));
 
     std::uint64_t ts = 1e9 * dataset["tout"].coeff(i + 1, 0);
     tracker.computeControlOutput(ts);
 
     const Eigen::Vector3d result = tracker.thrust_sp();
     const Eigen::Vector3d expected = dataset["thrust_cmd"].col(i);
-    ASSERT_TRUE(result.isApprox(expected, 1e-10))
+    ASSERT_TRUE(result.isApprox(expected, 1e-8))
         << "Comparison failed on iteration: " << i << " where time is " << ts
         << " \n";
   }
