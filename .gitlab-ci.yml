@@ -16,7 +16,7 @@ build:
   script:
     - git submodule update --init --recursive
     - cmake -B build -S .
-    - cmake --build build --target all
+    - cmake --build build --config Release --target all
   artifacts:
     paths:
       - build/librobust_tracker.a
@@ -26,7 +26,7 @@ RunGTest:
   script:
     - git submodule update --init --recursive
     - cmake -B build -S .
-    - cmake --build build --target test_controller
+    - cmake --build build --config Release --target test_controller
     - build/tests/test_controller
 
 RunCTest:
@@ -34,5 +34,5 @@ RunCTest:
   script:
     - git submodule update --init --recursive
     - cmake -B build -S .
-    - cmake --build build --target test_controller
-    - ctest --output-on-failure -j6 --test-dir build
+    - cmake --build build --config Release --target test_controller
+    - ctest -j4 -C Release -T test --output-on-failure --test-dir build

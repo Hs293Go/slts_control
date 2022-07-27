@@ -21,6 +21,10 @@ using namespace std::string_literals;
 #error YOU DID NOT SET THE TEST DATAFILE MACRO CORRECTLY WHEN COMPILING THIS FILE!
 #endif
 
+#ifndef TEST_PARAMFILE
+#error YOU DID NOT SET THE TEST DATAFILE MACRO CORRECTLY WHEN COMPILING THIS FILE!
+#endif
+
 MATCHER_P(ContainsKey, key, key + (negation ? " not "s : " "s) + "found") {
   return arg.count(key) > 0;
 }
@@ -37,14 +41,29 @@ class TestController : public ::testing::Test {
   control::RobustTracker tracker;
 
   void SetUp() {
-    control::RobustTracker::Params p;
-    ASSERT_TRUE(tracker.setParams(p));
     using nlohmann::json;
-
+    control::RobustTracker::Params p;
     json root;
-    std::ifstream ifs(TEST_DATAFILE);
-    ASSERT_TRUE(ifs.is_open()) << "Failed to open: " << TEST_DATAFILE << "\n";
-    ASSERT_NO_THROW(ifs >> root) << "Json parsing failed!\n";
+    {
+      std::ifstream ifs(TEST_PARAMFILE);
+      ASSERT_TRUE(ifs.is_open()) << "Failed to open: " << TEST_DATAFILE << "\n";
+      ASSERT_NO_THROW(ifs >> root) << "Json parsing failed!\n";
+    }
+    ASSERT_NO_THROW(p.k_swing = root["control"]["k_swing"]);
+    ASSERT_NO_THROW(p.k_trim = root["control"]["k_trim"]);
+    ASSERT_NO_THROW(p.k_filter_leak = root["control"]["k_filter_leak"]);
+    ASSERT_NO_THROW(p.k_filter_gain = root["control"]["k_filter_gain"]);
+    ASSERT_NO_THROW(p.k_gen_trans_err = root["control"]["k_gen_trans_err"]);
+    ASSERT_NO_THROW(p.k_pos_err = root["control"]["k_pos_err"]);
+    ASSERT_NO_THROW(p.total_de_gain = root["control"]["total_de_gain"]);
+    ASSERT_NO_THROW(p.uav_de_gain = root["control"]["uav_de_gain"]);
+    ASSERT_TRUE(tracker.setParams(p));
+
+    {
+      std::ifstream ifs(TEST_DATAFILE);
+      ASSERT_TRUE(ifs.is_open()) << "Failed to open: " << TEST_DATAFILE << "\n";
+      ASSERT_NO_THROW(ifs >> root) << "Json parsing failed!\n";
+    }
 
     for (const auto& tup : root.items()) {
       const auto& key = tup.key();
