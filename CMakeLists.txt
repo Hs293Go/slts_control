@@ -63,7 +63,4 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
 include(CTest)
-if(BUILD_TESTING)
-  enable_testing()
-  add_subdirectory(tests EXCLUDE_FROM_ALL)
-endif()
+add_subdirectory(tests EXCLUDE_FROM_ALL)

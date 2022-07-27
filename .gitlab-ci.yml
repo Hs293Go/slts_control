@@ -5,14 +5,16 @@ stages:
   - test
 
 before_script:
-  - apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y git g++ cmake libeigen3-dev libjsoncpp-dev
+  - apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y git g++ cmake libeigen3-dev libjsoncpp-dev openssh-client
+  - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/Hs293Go/slts_control_sim.git".insteadOf git@gitlab.com:Hs293Go/slts_control_sim.git
 
 variables:
-  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_STRATEGY: none
 
 build:
   stage: build
   script:
+    - git submodule update --init --recursive
     - cmake -B build -S .
     - cmake --build build --target all
   artifacts:
@@ -22,6 +24,7 @@ build:
 RunGTest:
   stage: test
   script:
+    - git submodule update --init --recursive
     - cmake -B build -S .
     - cmake --build build --target test_controller
     - build/tests/test_controller
@@ -29,6 +32,7 @@ RunGTest:
 RunCTest:
   stage: test
   script:
+    - git submodule update --init --recursive
     - cmake -B build -S .
     - cmake --build build --target test_controller
     - ctest --output-on-failure -j6 --test-dir build
