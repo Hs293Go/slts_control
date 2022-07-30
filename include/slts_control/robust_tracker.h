@@ -48,7 +48,7 @@ class RobustTracker {
                                 const Eigen::Vector2d& pld_rel_vel);
 
   void setPayloadTranslationalErrors(const Eigen::Vector3d& pld_pos_err,
-                                     const Eigen::Vector3d& pld_vel_err_rates,
+                                     const Eigen::Vector3d& pld_pos_err_rates,
                                      const Eigen::Vector3d& pld_vel_err,
                                      const Eigen::Vector3d& pld_vel_sp);
 
