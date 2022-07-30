@@ -3,13 +3,11 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <Eigen/Core>
 #include <cstdint>
 #include <fstream>
-#include <mutex>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 
@@ -24,10 +22,6 @@ using namespace std::string_literals;
 #ifndef TEST_PARAMFILE
 #error YOU DID NOT SET THE TEST DATAFILE MACRO CORRECTLY WHEN COMPILING THIS FILE!
 #endif
-
-MATCHER_P(ContainsKey, key, key + (negation ? " not "s : " "s) + "found") {
-  return arg.count(key) > 0;
-}
 
 class TestController : public ::testing::Test {
  public:
@@ -76,42 +70,39 @@ class TestController : public ::testing::Test {
   }
 };
 
-TEST_F(TestController, testDataFileKeys) {
-  ASSERT_THAT(dataset, ContainsKey("uav_pos"));
-  ASSERT_THAT(dataset, ContainsKey("uav_vel"));
-  ASSERT_THAT(dataset, ContainsKey("uav_acc"));
-  ASSERT_THAT(dataset, ContainsKey("pld_abs_pos"));
-  ASSERT_THAT(dataset, ContainsKey("pld_rel_pos"));
-  ASSERT_THAT(dataset, ContainsKey("pld_abs_vel"));
-  ASSERT_THAT(dataset, ContainsKey("pld_rel_vel"));
-  ASSERT_THAT(dataset, ContainsKey("thrust_cmd"));
-  ASSERT_THAT(dataset, ContainsKey("thrust_act"));
-  ASSERT_THAT(dataset, ContainsKey("pld_pos_err"));
-  ASSERT_THAT(dataset, ContainsKey("pld_vel_err"));
-  ASSERT_THAT(dataset, ContainsKey("pld_pos_err_rates"));
-  ASSERT_THAT(dataset, ContainsKey("pld_vel_sp"));
-  ASSERT_THAT(dataset, ContainsKey("proj_de"));
-  ASSERT_THAT(dataset, ContainsKey("total_de"));
-  ASSERT_THAT(dataset, ContainsKey("proj_de_est_err"));
-  ASSERT_THAT(dataset, ContainsKey("total_de_est_err"));
-  ASSERT_THAT(dataset, ContainsKey("pld_swing_est_err"));
-}
-
 TEST_F(TestController, testController) {
+  Eigen::Vector2d pld_rel_pos;
+  Eigen::Vector2d pld_rel_vel;
+  Eigen::Vector3d uav_vel;
+  Eigen::Vector3d uav_acc;
+  Eigen::Vector3d thrust_act;
+  Eigen::Vector3d pld_pos_err;
+  Eigen::Vector3d pld_pos_err_rates;
+  Eigen::Vector3d pld_vel_err;
+  Eigen::Vector3d pld_vel_sp;
+  Eigen::VectorXd tout;
+  ASSERT_NO_THROW(tout = dataset["tout"]);
+  tracker.setInitialConditions(tout[0]);
   int data_sz = dataset["tout"].size();
-
-  tracker.setInitialConditions(0);
+  ASSERT_GT(data_sz, 0);
   for (int i = 0; i < data_sz - 1; ++i) {
-    ASSERT_TRUE(tracker.setPayloadRelativePosVel(
-        -dataset["pld_rel_pos"].col(i), -dataset["pld_rel_vel"].col(i)));
-    tracker.setUavVelocity(dataset["uav_vel"].col(i));
-    tracker.setUavAcceleration(dataset["uav_acc"].col(i));
-    tracker.setActualThrust(dataset["thrust_act"].col(i));
-    tracker.setPayloadTranslationalErrors(
-        dataset["pld_pos_err"].col(i), dataset["pld_pos_err_rates"].col(i),
-        dataset["pld_vel_err"].col(i), dataset["pld_vel_sp"].col(i));
+    ASSERT_NO_THROW(pld_rel_pos = -dataset["pld_rel_pos"].col(i));
+    ASSERT_NO_THROW(pld_rel_vel = -dataset["pld_rel_vel"].col(i));
+    ASSERT_NO_THROW(uav_vel = dataset["uav_vel"].col(i));
+    ASSERT_NO_THROW(uav_acc = dataset["uav_acc"].col(i));
+    ASSERT_NO_THROW(thrust_act = dataset["thrust_act"].col(i));
+    ASSERT_NO_THROW(pld_pos_err_rates = dataset["pld_pos_err_rates"].col(i));
+    ASSERT_NO_THROW(pld_pos_err = dataset["pld_pos_err"].col(i));
+    ASSERT_NO_THROW(pld_vel_err = dataset["pld_vel_err"].col(i));
+    ASSERT_NO_THROW(pld_vel_sp = dataset["pld_vel_sp"].col(i));
+    ASSERT_TRUE(tracker.setPayloadRelativePosVel(pld_rel_pos, pld_rel_vel));
+    tracker.setUavVelocity(uav_vel);
+    tracker.setUavAcceleration(uav_acc);
+    tracker.setActualThrust(thrust_act);
+    tracker.setPayloadTranslationalErrors(pld_pos_err, pld_pos_err_rates,
+                                          pld_vel_err, pld_vel_sp);
 
-    std::uint64_t ts = 1e9 * dataset["tout"].coeff(i + 1, 0);
+    std::uint64_t ts = 1e9 * tout[i + 1];
     tracker.computeControlOutput(ts);
 
     const Eigen::Vector3d result = tracker.thrust_sp();
