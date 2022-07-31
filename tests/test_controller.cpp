@@ -70,6 +70,40 @@ class TestController : public ::testing::Test {
   }
 };
 
+TEST_F(TestController, testPayloadAbsoluteStatesComputation) {
+  Eigen::Vector2d pld_rel_pos;
+  Eigen::Vector2d pld_rel_vel;
+  Eigen::Vector3d pld_abs_pos;
+  Eigen::Vector3d uav_pos;
+  Eigen::Vector3d uav_vel;
+  Eigen::VectorXd tout;
+  Eigen::Vector3d result;
+  Eigen::Vector3d expected;
+  ASSERT_NO_THROW(tout = dataset.at("tout"));
+  tracker.setInitialConditions(tout[0]);
+  int data_sz = dataset.at("tout").size();
+  ASSERT_GT(data_sz, 0);
+  for (int i = 0; i < data_sz - 1; ++i) {
+    ASSERT_NO_THROW(pld_rel_pos = -dataset.at("pld_rel_pos").col(i));
+    ASSERT_NO_THROW(pld_rel_vel = -dataset.at("pld_rel_vel").col(i));
+    ASSERT_TRUE(tracker.setPayloadRelativePosVel(pld_rel_pos, pld_rel_vel));
+
+    ASSERT_NO_THROW(uav_pos = dataset.at("uav_pos").col(i));
+    tracker.setUavPosition(uav_pos);
+    result = tracker.pld_abs_pos();
+    ASSERT_NO_THROW(expected = dataset.at("pld_abs_pos").col(i));
+    ASSERT_TRUE(result.isApprox(expected, 1e-8))
+        << "Comparison failed on iteration: " << i << " \n";
+
+    ASSERT_NO_THROW(uav_vel = dataset.at("uav_vel").col(i));
+    tracker.setUavVelocity(uav_vel);
+    result = tracker.pld_abs_vel();
+    ASSERT_NO_THROW(expected = dataset.at("pld_abs_vel").col(i));
+    ASSERT_TRUE(result.isApprox(expected, 1e-8))
+        << "Comparison failed on iteration: " << i << " \n";
+  }
+}
+
 TEST_F(TestController, testController) {
   Eigen::Vector2d pld_rel_pos;
   Eigen::Vector2d pld_rel_vel;

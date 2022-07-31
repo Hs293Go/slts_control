@@ -35,6 +35,7 @@ class RobustTracker {
   bool setInitialConditions(std::uint64_t time,
                             const InitialConditions& ic = {});
 
+  void setUavPosition(const Eigen::Vector3d& uav_pos);
   void setUavVelocity(const Eigen::Vector3d& uav_vel);
 
   void setUavAcceleration(const Eigen::Vector3d& uav_acc);
@@ -53,6 +54,9 @@ class RobustTracker {
                                      const Eigen::Vector3d& pld_vel_sp);
 
   bool computeControlOutput(std::uint64_t t);
+
+  inline const Eigen::Vector3d& pld_abs_pos() const { return pld_abs_pos_; }
+  inline const Eigen::Vector3d& pld_abs_vel() const { return pld_abs_vel_; }
 
   inline const Eigen::Vector3d& thrust_sp() const { return thrust_sp_; }
   inline double yaw_sp() const { return yaw_sp_; }
@@ -88,10 +92,12 @@ class RobustTracker {
 
   double iz_;
 
+  Eigen::Vector3d uav_pos_;
   Eigen::Vector3d uav_vel_;
   Eigen::Vector3d uav_acc_;
   Eigen::Vector2d pld_rel_pos_;
   Eigen::Vector2d pld_rel_vel_;
+  Eigen::Vector3d pld_abs_pos_;
   Eigen::Vector3d pld_abs_vel_;
 
   math::Integral<Eigen::Vector3d> filt_cross_feeding_;

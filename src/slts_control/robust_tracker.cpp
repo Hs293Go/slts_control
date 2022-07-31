@@ -119,6 +119,11 @@ void RobustTracker::setUavAcceleration(const Eigen::Vector3d& uav_acc) {
   uav_acc_ = uav_acc;
 }
 
+void RobustTracker::setUavPosition(const Eigen::Vector3d& uav_pos) {
+  uav_pos_ = uav_pos;
+  pld_abs_pos_ = uav_pos_ - pld_rel_pos_full_;
+}
+
 void RobustTracker::setUavVelocity(const Eigen::Vector3d& uav_vel) {
   uav_vel_ = uav_vel;
   pld_abs_vel_ = uav_vel_ - pld_rel_vel_full_;
