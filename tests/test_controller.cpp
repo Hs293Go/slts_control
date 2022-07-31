@@ -115,20 +115,20 @@ TEST_F(TestController, testController) {
   Eigen::Vector3d pld_vel_err;
   Eigen::Vector3d pld_vel_sp;
   Eigen::VectorXd tout;
-  ASSERT_NO_THROW(tout = dataset["tout"]);
+  ASSERT_NO_THROW(tout = dataset.at("tout"));
   tracker.setInitialConditions(tout[0]);
-  int data_sz = dataset["tout"].size();
+  int data_sz = dataset.at("tout").size();
   ASSERT_GT(data_sz, 0);
   for (int i = 0; i < data_sz - 1; ++i) {
-    ASSERT_NO_THROW(pld_rel_pos = -dataset["pld_rel_pos"].col(i));
-    ASSERT_NO_THROW(pld_rel_vel = -dataset["pld_rel_vel"].col(i));
-    ASSERT_NO_THROW(uav_vel = dataset["uav_vel"].col(i));
-    ASSERT_NO_THROW(uav_acc = dataset["uav_acc"].col(i));
-    ASSERT_NO_THROW(thrust_act = dataset["thrust_act"].col(i));
-    ASSERT_NO_THROW(pld_pos_err_rates = dataset["pld_pos_err_rates"].col(i));
-    ASSERT_NO_THROW(pld_pos_err = dataset["pld_pos_err"].col(i));
-    ASSERT_NO_THROW(pld_vel_err = dataset["pld_vel_err"].col(i));
-    ASSERT_NO_THROW(pld_vel_sp = dataset["pld_vel_sp"].col(i));
+    ASSERT_NO_THROW(pld_rel_pos = -dataset.at("pld_rel_pos").col(i));
+    ASSERT_NO_THROW(pld_rel_vel = -dataset.at("pld_rel_vel").col(i));
+    ASSERT_NO_THROW(uav_vel = dataset.at("uav_vel").col(i));
+    ASSERT_NO_THROW(uav_acc = dataset.at("uav_acc").col(i));
+    ASSERT_NO_THROW(thrust_act = dataset.at("thrust_act").col(i));
+    ASSERT_NO_THROW(pld_pos_err_rates = dataset.at("pld_pos_err_rates").col(i));
+    ASSERT_NO_THROW(pld_pos_err = dataset.at("pld_pos_err").col(i));
+    ASSERT_NO_THROW(pld_vel_err = dataset.at("pld_vel_err").col(i));
+    ASSERT_NO_THROW(pld_vel_sp = dataset.at("pld_vel_sp").col(i));
     ASSERT_TRUE(tracker.setPayloadRelativePosVel(pld_rel_pos, pld_rel_vel));
     tracker.setUavVelocity(uav_vel);
     tracker.setUavAcceleration(uav_acc);
@@ -140,7 +140,7 @@ TEST_F(TestController, testController) {
     tracker.computeControlOutput(ts);
 
     const Eigen::Vector3d result = tracker.thrust_sp();
-    const Eigen::Vector3d expected = dataset["thrust_cmd"].col(i);
+    const Eigen::Vector3d expected = dataset.at("thrust_cmd").col(i);
     ASSERT_TRUE(result.isApprox(expected, 1e-8))
         << "Comparison failed on iteration: " << i << " where time is " << ts
         << " \n";
