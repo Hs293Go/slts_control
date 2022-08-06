@@ -85,10 +85,10 @@ TEST_F(TestController, testPayloadAbsoluteStatesComputation) {
   ASSERT_GT(data_sz, 0);
   for (int i = 0; i < data_sz - 1; ++i) {
     ASSERT_NO_THROW(uav_pos = dataset.at("uav_pos").col(i));
-    tracker.setUavPosition(uav_pos);
+    tracker.uav_pos() = uav_pos;
 
     ASSERT_NO_THROW(uav_vel = dataset.at("uav_vel").col(i));
-    tracker.setUavVelocity(uav_vel);
+    tracker.uav_vel() = uav_vel;
 
     ASSERT_NO_THROW(pld_rel_pos = -dataset.at("pld_rel_pos").col(i));
     ASSERT_NO_THROW(pld_rel_vel = -dataset.at("pld_rel_vel").col(i));
@@ -132,9 +132,9 @@ TEST_F(TestController, testController) {
     ASSERT_NO_THROW(pld_vel_err = dataset.at("pld_vel_err").col(i));
     ASSERT_NO_THROW(pld_vel_sp = dataset.at("pld_vel_sp").col(i));
     tracker.setPayloadRelativePosVel(pld_rel_pos, pld_rel_vel);
-    tracker.setUavVelocity(uav_vel);
-    tracker.setUavAcceleration(uav_acc);
-    tracker.setActualThrust(thrust_act);
+    tracker.uav_vel() = uav_vel;
+    tracker.uav_acc() = uav_acc;
+    tracker.thrust_act() = thrust_act;
     tracker.setPayloadTranslationalErrors(pld_pos_err, pld_pos_err_rates,
                                           pld_vel_err, pld_vel_sp);
 

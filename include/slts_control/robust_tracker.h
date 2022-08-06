@@ -9,7 +9,6 @@
 #include <Eigen/Dense>
 #include <atomic>
 #include <cstdint>
-#include <mutex>
 #include <variant>
 
 #include "slts_control/definitions.h"
@@ -35,13 +34,6 @@ class RobustTracker {
   bool setInitialConditions(std::uint64_t time,
                             const InitialConditions& ic = {});
 
-  void setUavPosition(const Eigen::Vector3d& uav_pos);
-  void setUavVelocity(const Eigen::Vector3d& uav_vel);
-
-  void setUavAcceleration(const Eigen::Vector3d& uav_acc);
-
-  void setActualThrust(const Eigen::Vector3d& thrust_act);
-
   void setPayloadRelativePosition(std::uint64_t time,
                                   const Eigen::Vector2d& pld_rel_pos);
 
@@ -55,6 +47,11 @@ class RobustTracker {
 
   bool computeFullVelocity();
   bool computeControlOutput(std::uint64_t t);
+
+  inline Eigen::Vector3d& uav_pos() { return uav_pos_; }
+  inline Eigen::Vector3d& uav_vel() { return uav_vel_; }
+  inline Eigen::Vector3d& uav_acc() { return uav_acc_; }
+  inline Eigen::Vector3d& thrust_act() { return thrust_act_; }
 
   inline const Eigen::Vector3d& pld_abs_pos() const { return pld_abs_pos_; }
   inline const Eigen::Vector3d& pld_abs_vel() const { return pld_abs_vel_; }
@@ -126,8 +123,6 @@ class RobustTracker {
   Eigen::Vector3d thrust_sp_;
   Eigen::Vector3d thrust_act_;
   double yaw_sp_;
-
-  std::mutex mtx_;
 
   std::atomic_uint64_t pld_speed_diff_time;
   std::atomic_uint64_t integrator_last_time_;

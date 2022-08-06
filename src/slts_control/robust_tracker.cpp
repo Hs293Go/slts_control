@@ -121,22 +121,6 @@ void RobustTracker::setPayloadTranslationalErrors(
   pld_vel_sp_ = pld_vel_sp;
 }
 
-void RobustTracker::setUavAcceleration(const Eigen::Vector3d& uav_acc) {
-  uav_acc_ = uav_acc;
-}
-
-void RobustTracker::setUavPosition(const Eigen::Vector3d& uav_pos) {
-  uav_pos_ = uav_pos;
-}
-
-void RobustTracker::setUavVelocity(const Eigen::Vector3d& uav_vel) {
-  uav_vel_ = uav_vel;
-}
-
-void RobustTracker::setActualThrust(const Eigen::Vector3d& thrust_act) {
-  thrust_act_ = thrust_act;
-}
-
 void RobustTracker::setPayloadRelativePosition(
     std::uint64_t time, const Eigen::Vector2d& pld_rel_pos) {
   auto last_time = pld_speed_diff_time.load();
