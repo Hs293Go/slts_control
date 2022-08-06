@@ -84,19 +84,21 @@ TEST_F(TestController, testPayloadAbsoluteStatesComputation) {
   int data_sz = dataset.at("tout").size();
   ASSERT_GT(data_sz, 0);
   for (int i = 0; i < data_sz - 1; ++i) {
-    ASSERT_NO_THROW(pld_rel_pos = -dataset.at("pld_rel_pos").col(i));
-    ASSERT_NO_THROW(pld_rel_vel = -dataset.at("pld_rel_vel").col(i));
-    ASSERT_TRUE(tracker.setPayloadRelativePosVel(pld_rel_pos, pld_rel_vel));
-
     ASSERT_NO_THROW(uav_pos = dataset.at("uav_pos").col(i));
     tracker.setUavPosition(uav_pos);
+
+    ASSERT_NO_THROW(uav_vel = dataset.at("uav_vel").col(i));
+    tracker.setUavVelocity(uav_vel);
+
+    ASSERT_NO_THROW(pld_rel_pos = -dataset.at("pld_rel_pos").col(i));
+    ASSERT_NO_THROW(pld_rel_vel = -dataset.at("pld_rel_vel").col(i));
+    tracker.setPayloadRelativePosVel(pld_rel_pos, pld_rel_vel);
+
+    tracker.computeFullVelocity();
     result = tracker.pld_abs_pos();
     ASSERT_NO_THROW(expected = dataset.at("pld_abs_pos").col(i));
     ASSERT_TRUE(result.isApprox(expected, 1e-8))
         << "Comparison failed on iteration: " << i << " \n";
-
-    ASSERT_NO_THROW(uav_vel = dataset.at("uav_vel").col(i));
-    tracker.setUavVelocity(uav_vel);
     result = tracker.pld_abs_vel();
     ASSERT_NO_THROW(expected = dataset.at("pld_abs_vel").col(i));
     ASSERT_TRUE(result.isApprox(expected, 1e-8))
@@ -129,7 +131,7 @@ TEST_F(TestController, testController) {
     ASSERT_NO_THROW(pld_pos_err = dataset.at("pld_pos_err").col(i));
     ASSERT_NO_THROW(pld_vel_err = dataset.at("pld_vel_err").col(i));
     ASSERT_NO_THROW(pld_vel_sp = dataset.at("pld_vel_sp").col(i));
-    ASSERT_TRUE(tracker.setPayloadRelativePosVel(pld_rel_pos, pld_rel_vel));
+    tracker.setPayloadRelativePosVel(pld_rel_pos, pld_rel_vel);
     tracker.setUavVelocity(uav_vel);
     tracker.setUavAcceleration(uav_acc);
     tracker.setActualThrust(thrust_act);

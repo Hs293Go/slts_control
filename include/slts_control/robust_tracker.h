@@ -42,10 +42,10 @@ class RobustTracker {
 
   void setActualThrust(const Eigen::Vector3d& thrust_act);
 
-  bool setPayloadRelativePosition(std::uint64_t time,
+  void setPayloadRelativePosition(std::uint64_t time,
                                   const Eigen::Vector2d& pld_rel_pos);
 
-  bool setPayloadRelativePosVel(const Eigen::Vector2d& pld_rel_pos,
+  void setPayloadRelativePosVel(const Eigen::Vector2d& pld_rel_pos,
                                 const Eigen::Vector2d& pld_rel_vel);
 
   void setPayloadTranslationalErrors(const Eigen::Vector3d& pld_pos_err,
@@ -53,6 +53,7 @@ class RobustTracker {
                                      const Eigen::Vector3d& pld_vel_err,
                                      const Eigen::Vector3d& pld_vel_sp);
 
+  bool computeFullVelocity();
   bool computeControlOutput(std::uint64_t t);
 
   inline const Eigen::Vector3d& pld_abs_pos() const { return pld_abs_pos_; }
@@ -63,8 +64,6 @@ class RobustTracker {
 
  private:
   using DisturbanceEstimate = details::DisturbanceEstimate;
-
-  bool computeFullVelocity();
 
   void computePayloadStateEstimates();
 

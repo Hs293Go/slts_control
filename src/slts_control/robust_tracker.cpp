@@ -26,6 +26,11 @@ bool RobustTracker::computeControlOutput(std::uint64_t t) {
   if (!param_set_ || !ic_set_) {
     return false;
   }
+
+  if (!computeFullVelocity()) {
+    return false;
+  }
+
   auto last_time = integrator_last_time_.load();
   auto dt = 1e-9 * (t - last_time);
   updateDisturbanceEstimates(dt);
@@ -100,7 +105,8 @@ bool RobustTracker::setInitialConditions(std::uint64_t time,
   uav_vel_ = ic.uav_vel;
   uav_acc_ = ic.uav_acc;
 
-  if (!setPayloadRelativePosVel(ic.pld_rel_pos, ic.pld_rel_vel)) {
+  setPayloadRelativePosVel(ic.pld_rel_pos, ic.pld_rel_vel);
+  if (!computeFullVelocity()) {
     return ic_set_ = false;
   }
   return ic_set_ = true;
@@ -121,19 +127,17 @@ void RobustTracker::setUavAcceleration(const Eigen::Vector3d& uav_acc) {
 
 void RobustTracker::setUavPosition(const Eigen::Vector3d& uav_pos) {
   uav_pos_ = uav_pos;
-  pld_abs_pos_ = uav_pos_ - pld_rel_pos_full_;
 }
 
 void RobustTracker::setUavVelocity(const Eigen::Vector3d& uav_vel) {
   uav_vel_ = uav_vel;
-  pld_abs_vel_ = uav_vel_ - pld_rel_vel_full_;
 }
 
 void RobustTracker::setActualThrust(const Eigen::Vector3d& thrust_act) {
   thrust_act_ = thrust_act;
 }
 
-bool RobustTracker::setPayloadRelativePosition(
+void RobustTracker::setPayloadRelativePosition(
     std::uint64_t time, const Eigen::Vector2d& pld_rel_pos) {
   auto last_time = pld_speed_diff_time.load();
   const auto dt = 1e-9 * (time - last_time);
@@ -143,15 +147,12 @@ bool RobustTracker::setPayloadRelativePosition(
 
   pld_rel_vel_ = (pld_rel_pos - pld_rel_pos_) / dt;
   pld_rel_pos_ = pld_rel_pos;
-
-  return computeFullVelocity();
 }
 
-bool RobustTracker::setPayloadRelativePosVel(
+void RobustTracker::setPayloadRelativePosVel(
     const Eigen::Vector2d& pld_rel_pos, const Eigen::Vector2d& pld_rel_vel) {
   pld_rel_pos_ = pld_rel_pos;
   pld_rel_vel_ = pld_rel_vel;
-  return computeFullVelocity();
 }
 
 bool RobustTracker::computeFullVelocity() {
@@ -172,6 +173,9 @@ bool RobustTracker::computeFullVelocity() {
 
     const Eigen::Vector2d B_rc = z / kCableLenSq * pld_rel_pos_;
     B_frak_ << B_lc, B_rc, B_rc.transpose(), sq_nrm / kCableLenSq;
+
+    pld_abs_pos_ = uav_pos_ - pld_rel_pos_full_;
+    pld_abs_vel_ = uav_vel_ - pld_rel_vel_full_;
     return true;
   }
   iz_ = -1.0;
