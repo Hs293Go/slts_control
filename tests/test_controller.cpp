@@ -6,11 +6,11 @@
 #include <gtest/gtest.h>
 
 #include <Eigen/Core>
-#include <cstdint>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 
+#include "slts_control/definitions.h"
 #include "slts_control/robust_tracker.h"
 
 using namespace std::string_literals;
@@ -80,7 +80,7 @@ TEST_F(TestController, testPayloadAbsoluteStatesComputation) {
   Eigen::Vector3d result;
   Eigen::Vector3d expected;
   ASSERT_NO_THROW(tout = dataset.at("tout"));
-  tracker.setInitialConditions(tout[0]);
+  tracker.setInitialConditions();
   int data_sz = dataset.at("tout").size();
   ASSERT_GT(data_sz, 0);
   for (int i = 0; i < data_sz - 1; ++i) {
@@ -118,12 +118,17 @@ TEST_F(TestController, testController) {
   Eigen::Vector3d pld_vel_sp;
   Eigen::VectorXd tout;
   ASSERT_NO_THROW(tout = dataset.at("tout"));
-  tracker.setInitialConditions(tout[0]);
+  control::RobustTracker::InitialConditions ic;
+  ASSERT_NO_THROW(ic.pld_rel_pos = -dataset.at("pld_rel_pos").col(0));
+  ASSERT_NO_THROW(ic.pld_rel_vel = -dataset.at("pld_rel_vel").col(0));
+  ASSERT_NO_THROW(ic.uav_acc = dataset.at("uav_acc").col(0));
+  ASSERT_NO_THROW(ic.uav_vel = dataset.at("uav_vel").col(0));
+  ASSERT_TRUE(tracker.setInitialConditions(ic));
   int data_sz = dataset.at("tout").size();
   ASSERT_GT(data_sz, 0);
   for (int i = 0; i < data_sz - 1; ++i) {
+    double dt = tout[i + 1] - tout[i];
     ASSERT_NO_THROW(pld_rel_pos = -dataset.at("pld_rel_pos").col(i));
-    ASSERT_NO_THROW(pld_rel_vel = -dataset.at("pld_rel_vel").col(i));
     ASSERT_NO_THROW(uav_vel = dataset.at("uav_vel").col(i));
     ASSERT_NO_THROW(uav_acc = dataset.at("uav_acc").col(i));
     ASSERT_NO_THROW(thrust_act = dataset.at("thrust_act").col(i));
@@ -131,21 +136,21 @@ TEST_F(TestController, testController) {
     ASSERT_NO_THROW(pld_pos_err = dataset.at("pld_pos_err").col(i));
     ASSERT_NO_THROW(pld_vel_err = dataset.at("pld_vel_err").col(i));
     ASSERT_NO_THROW(pld_vel_sp = dataset.at("pld_vel_sp").col(i));
-    tracker.setPayloadRelativePosVel(pld_rel_pos, pld_rel_vel);
+    tracker.setPayloadRelativePosition(dt, -dataset.at("pld_rel_pos").col(i + 1),
+                                       control::NumDiffMode::Forward);
     tracker.uav_vel() = uav_vel;
     tracker.uav_acc() = uav_acc;
     tracker.thrust_act() = thrust_act;
     tracker.setPayloadTranslationalErrors(pld_pos_err, pld_pos_err_rates,
                                           pld_vel_err, pld_vel_sp);
 
-    std::uint64_t ts = 1e9 * tout[i + 1];
-    tracker.computeControlOutput(ts);
+    tracker.computeControlOutput(dt);
 
     const Eigen::Vector3d result = tracker.thrust_sp();
     const Eigen::Vector3d expected = dataset.at("thrust_cmd").col(i);
     ASSERT_TRUE(result.isApprox(expected, 1e-8))
-        << "Comparison failed on iteration: " << i << " where time is " << ts
-        << " \n";
+        << "Comparison failed on iteration: " << i << " where time is "
+        << tout[i] << " \n";
   }
 }
 

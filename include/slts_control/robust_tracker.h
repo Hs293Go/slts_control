@@ -7,9 +7,7 @@
 #define ROBUST_TRACKER_H
 
 #include <Eigen/Dense>
-#include <atomic>
 #include <cstdint>
-#include <variant>
 
 #include "slts_control/definitions.h"
 
@@ -31,12 +29,11 @@ class RobustTracker {
 
   bool setParams(const Params& p);
 
-  bool setInitialConditions(std::uint64_t time,
-                            const InitialConditions& ic = {});
+  bool setInitialConditions(const InitialConditions& ic = {});
 
   template <typename Mode>
-  void setPayloadRelativePosition(std::uint64_t time,
-                                  const Eigen::Vector2d& pld_rel_pos, Mode);
+  void setPayloadRelativePosition(double dt, const Eigen::Vector2d& pld_rel_pos,
+                                  Mode);
 
   void setPayloadRelativePosVel(const Eigen::Vector2d& pld_rel_pos,
                                 const Eigen::Vector2d& pld_rel_vel);
@@ -47,7 +44,7 @@ class RobustTracker {
                                      const Eigen::Vector3d& pld_vel_sp);
 
   bool computeFullVelocity();
-  bool computeControlOutput(std::uint64_t t);
+  bool computeControlOutput(double dt);
 
   inline Eigen::Vector3d& uav_pos() { return uav_pos_; }
   inline Eigen::Vector3d& uav_vel() { return uav_vel_; }
@@ -126,9 +123,6 @@ class RobustTracker {
   Eigen::Vector3d thrust_sp_;
   Eigen::Vector3d thrust_act_;
   double yaw_sp_;
-
-  std::atomic_uint64_t pld_speed_diff_time;
-  std::atomic_uint64_t integrator_last_time_;
 };
 
 }  // namespace control

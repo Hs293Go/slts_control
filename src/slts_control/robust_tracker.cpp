@@ -23,7 +23,7 @@ RobustTracker::RobustTracker(double uav_mass, double pld_mass,
       kUavWeight(kUavMass * 9.80665 * Eigen::Vector3d::UnitZ()),
       kSysWeight(kPldWeight + kUavWeight) {}
 
-bool RobustTracker::computeControlOutput(std::uint64_t t) {
+bool RobustTracker::computeControlOutput(double dt) {
   if (!param_set_ || !ic_set_) {
     return false;
   }
@@ -32,13 +32,11 @@ bool RobustTracker::computeControlOutput(std::uint64_t t) {
     return false;
   }
 
-  auto last_time = integrator_last_time_.load();
-  auto dt = 1e-9 * (t - last_time);
+  if (dt < 1e-10) {
+    return false;
+  }
   updateDisturbanceEstimates(dt);
   updateTranslationalErrors(dt);
-
-  while (!integrator_last_time_.compare_exchange_weak(last_time, t)) {
-  }
 
   auto sync_force =
       -kUavMass * (trans_cross_feeding_rates_ + translational_sync_);
@@ -98,11 +96,7 @@ bool RobustTracker::setParams(const Params& p) {
   return true;
 }
 
-bool RobustTracker::setInitialConditions(std::uint64_t time,
-                                         const InitialConditions& ic) {
-  integrator_last_time_ = time;
-  pld_speed_diff_time = time;
-
+bool RobustTracker::setInitialConditions(const InitialConditions& ic) {
   uav_vel_ = ic.uav_vel;
   uav_acc_ = ic.uav_acc;
 
@@ -124,37 +118,24 @@ void RobustTracker::setPayloadTranslationalErrors(
 
 template <>
 void RobustTracker::setPayloadRelativePosition<NumDiffMode::Backward_t>(
-    std::uint64_t time, const Eigen::Vector2d& pld_rel_pos,
-    NumDiffMode::Backward_t) {
-  auto last_time = pld_speed_diff_time.load();
-  const auto dt = 1e-9 * (time - last_time);
+    double dt, const Eigen::Vector2d& pld_rel_pos, NumDiffMode::Backward_t) {
   if (dt < 1e-10) {
     return;
   }
-  while (!pld_speed_diff_time.compare_exchange_weak(last_time, time)) {
-  }
-
   pld_rel_vel_ = (pld_rel_pos - pld_rel_pos_) / dt;
   pld_rel_pos_ = pld_rel_pos;
-  return;
 }
 
 template <>
 void RobustTracker::setPayloadRelativePosition<NumDiffMode::Forward_t>(
-    std::uint64_t time, const Eigen::Vector2d& pld_rel_pos,
-    NumDiffMode::Forward_t) {
-  auto last_time = pld_speed_diff_time.load();
-  const auto dt = 1e-9 * (time - last_time);
+    double dt, const Eigen::Vector2d& pld_rel_pos, NumDiffMode::Forward_t) {
   pld_rel_pos_ = numdiff_rel_pos_;
   if (dt < 1e-10) {
     return;
   }
-  while (!pld_speed_diff_time.compare_exchange_weak(last_time, time)) {
-  }
 
   pld_rel_vel_ = (pld_rel_pos - numdiff_rel_pos_) / dt;
   numdiff_rel_pos_ = pld_rel_pos;
-  return;
 }
 
 void RobustTracker::setPayloadRelativePosVel(
