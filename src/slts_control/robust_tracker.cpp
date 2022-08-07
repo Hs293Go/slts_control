@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <limits>
 
+#include "slts_control/definitions.h"
 #include "slts_control/eigen_utils.h"
 
 namespace control {
@@ -121,21 +122,45 @@ void RobustTracker::setPayloadTranslationalErrors(
   pld_vel_sp_ = pld_vel_sp;
 }
 
-void RobustTracker::setPayloadRelativePosition(
-    std::uint64_t time, const Eigen::Vector2d& pld_rel_pos) {
+template <>
+void RobustTracker::setPayloadRelativePosition<NumDiffMode::Backward_t>(
+    std::uint64_t time, const Eigen::Vector2d& pld_rel_pos,
+    NumDiffMode::Backward_t) {
   auto last_time = pld_speed_diff_time.load();
   const auto dt = 1e-9 * (time - last_time);
-
+  if (dt < 1e-10) {
+    return;
+  }
   while (!pld_speed_diff_time.compare_exchange_weak(last_time, time)) {
   }
 
   pld_rel_vel_ = (pld_rel_pos - pld_rel_pos_) / dt;
   pld_rel_pos_ = pld_rel_pos;
+  return;
+}
+
+template <>
+void RobustTracker::setPayloadRelativePosition<NumDiffMode::Forward_t>(
+    std::uint64_t time, const Eigen::Vector2d& pld_rel_pos,
+    NumDiffMode::Forward_t) {
+  auto last_time = pld_speed_diff_time.load();
+  const auto dt = 1e-9 * (time - last_time);
+  pld_rel_pos_ = numdiff_rel_pos_;
+  if (dt < 1e-10) {
+    return;
+  }
+  while (!pld_speed_diff_time.compare_exchange_weak(last_time, time)) {
+  }
+
+  pld_rel_vel_ = (pld_rel_pos - numdiff_rel_pos_) / dt;
+  numdiff_rel_pos_ = pld_rel_pos;
+  return;
 }
 
 void RobustTracker::setPayloadRelativePosVel(
     const Eigen::Vector2d& pld_rel_pos, const Eigen::Vector2d& pld_rel_vel) {
   pld_rel_pos_ = pld_rel_pos;
+  numdiff_rel_pos_ = pld_rel_pos;
   pld_rel_vel_ = pld_rel_vel;
 }
 

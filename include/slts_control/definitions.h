@@ -11,6 +11,13 @@
 #include "slts_control/integral.h"
 
 namespace control {
+
+struct NumDiffMode {
+  static constexpr struct Forward_t { Forward_t() = default; } Forward{};
+
+  static constexpr struct Backward_t { Backward_t() = default; } Backward{};
+};
+
 struct RobustTrackerParams {
   double k_pos_err = 0.24;
   double k_gen_trans_err = 0.10;

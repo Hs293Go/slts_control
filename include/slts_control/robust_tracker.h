@@ -34,8 +34,9 @@ class RobustTracker {
   bool setInitialConditions(std::uint64_t time,
                             const InitialConditions& ic = {});
 
+  template <typename Mode>
   void setPayloadRelativePosition(std::uint64_t time,
-                                  const Eigen::Vector2d& pld_rel_pos);
+                                  const Eigen::Vector2d& pld_rel_pos, Mode);
 
   void setPayloadRelativePosVel(const Eigen::Vector2d& pld_rel_pos,
                                 const Eigen::Vector2d& pld_rel_vel);
@@ -95,6 +96,8 @@ class RobustTracker {
   Eigen::Vector2d pld_rel_vel_;
   Eigen::Vector3d pld_abs_pos_;
   Eigen::Vector3d pld_abs_vel_;
+
+  Eigen::Vector2d numdiff_rel_pos_;
 
   math::Integral<Eigen::Vector3d> filt_cross_feeding_;
   Eigen::Vector3d thrust_;
