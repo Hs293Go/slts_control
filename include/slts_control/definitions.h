@@ -38,6 +38,7 @@ struct RobustTrackerParams {
 };
 
 struct RobustTrackerInitialConditions {
+  Eigen::Vector3d uav_pos{Eigen::Vector3d::Zero()};
   Eigen::Vector3d uav_vel{Eigen::Vector3d::Zero()};
   Eigen::Vector3d uav_acc{Eigen::Vector3d::Zero()};
   Eigen::Vector2d pld_rel_pos{Eigen::Vector2d::Zero()};

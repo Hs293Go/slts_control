@@ -97,6 +97,7 @@ bool RobustTracker::setParams(const Params& p) {
 }
 
 bool RobustTracker::setInitialConditions(const InitialConditions& ic) {
+  uav_pos_ = ic.uav_pos;
   uav_vel_ = ic.uav_vel;
   uav_acc_ = ic.uav_acc;
 
