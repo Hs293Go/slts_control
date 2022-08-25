@@ -19,15 +19,13 @@ class RobustTracker {
   using Params = RobustTrackerParams;
   using InitialConditions = RobustTrackerInitialConditions;
 
-  RobustTracker(double uav_mass, double pld_mass, double cable_length);
-
-  RobustTracker() = delete;
+  RobustTracker();
   RobustTracker(const RobustTracker&) = delete;
   RobustTracker(RobustTracker&&) = delete;
   RobustTracker& operator=(const RobustTracker&) = delete;
   RobustTracker& operator=(RobustTracker&&) = delete;
 
-  bool setParams(const Params& p);
+  bool loadParams(const Params& p);
 
   bool setInitialConditions(const InitialConditions& ic = {});
 
@@ -66,14 +64,14 @@ class RobustTracker {
 
   void updateDisturbanceEstimates(double dt);
 
-  const double kUavMass;
-  const double kPldMass;
-  const double kSysMass;
-  const double kCableLen;
-  const double kCableLenSq;
-  const Eigen::Vector3d kPldWeight;
-  const Eigen::Vector3d kUavWeight;
-  const Eigen::Vector3d kSysWeight;
+  double uav_mass_;
+  double pld_mass_;
+  double sys_mass_;
+  double cable_len_;
+  double cable_len_sq_;
+  Eigen::Vector3d pld_weight_;
+  Eigen::Vector3d uav_weight_;
+  Eigen::Vector3d sys_weight_;
 
   double k_pos_err_;
   double k_gen_trans_err_;

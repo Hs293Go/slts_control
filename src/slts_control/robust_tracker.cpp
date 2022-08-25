@@ -12,16 +12,7 @@
 #include "slts_control/eigen_utils.h"
 
 namespace control {
-RobustTracker::RobustTracker(double uav_mass, double pld_mass,
-                             double cable_length)
-    : kUavMass(uav_mass),
-      kPldMass(pld_mass),
-      kSysMass(kUavMass + kPldMass),
-      kCableLen(cable_length),
-      kCableLenSq(kCableLen * kCableLen),
-      kPldWeight(kPldMass * 9.80665 * Eigen::Vector3d::UnitZ()),
-      kUavWeight(kUavMass * 9.80665 * Eigen::Vector3d::UnitZ()),
-      kSysWeight(kPldWeight + kUavWeight) {}
+RobustTracker::RobustTracker() : param_set_(false), ic_set_(false) {}
 
 bool RobustTracker::computeControlOutput(double dt) {
   if (!param_set_ || !ic_set_) {
@@ -39,18 +30,40 @@ bool RobustTracker::computeControlOutput(double dt) {
   updateTranslationalErrors(dt);
 
   auto sync_force =
-      -kUavMass * (trans_cross_feeding_rates_ + translational_sync_);
+      -uav_mass_ * (trans_cross_feeding_rates_ + translational_sync_);
   auto motion_compensator =
       -k_trim_ * (pld_abs_vel_ + trans_cross_feeding_ + raw_cross_feeding_);
-  auto trans_compensator = -kPldMass * (trans_cross_feeding_rates_ +
-                                        k_gen_trans_err_ * gen_trans_err_);
+  auto trans_compensator = -pld_mass_ * (trans_cross_feeding_rates_ +
+                                         k_gen_trans_err_ * gen_trans_err_);
 
-  auto trim_force = -kUavWeight + pld_trim_est_ - proj_de_;
+  auto trim_force = -uav_weight_ + pld_trim_est_ - proj_de_;
   thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
   return true;
 }
 
-bool RobustTracker::setParams(const Params& p) {
+bool RobustTracker::loadParams(const Params& p) {
+  uav_mass_ = p.uav_mass;
+  if (p.uav_mass < 0.0) {
+    return false;
+  }
+  pld_mass_ = p.pld_mass;
+  if (p.pld_mass < 0.0) {
+    return false;
+  }
+
+  sys_mass_ = uav_mass_ + pld_mass_;
+
+  cable_len_ = p.cable_length;
+  if (cable_len_ < 0.0) {
+    return false;
+  }
+  cable_len_sq_ = cable_len_ * cable_len_;
+
+  const double grav_const = p.frame == Frame::kNED ? 9.80665 : -9.80665;
+  pld_weight_ = pld_mass_ * grav_const * Eigen::Vector3d::UnitZ();
+  uav_weight_ = uav_mass_ * grav_const * Eigen::Vector3d::UnitZ();
+  sys_weight_ = pld_weight_ + uav_weight_;
+
   k_pos_err_ = p.k_pos_err;
   k_gen_trans_err_ = p.k_gen_trans_err;
   k_trim_ = p.k_trim;
@@ -152,18 +165,18 @@ bool RobustTracker::computeFullVelocity() {
   pld_rel_vel_full_.head<2>() = pld_rel_vel_;
 
   auto B_lc = Eigen::Matrix2d::Identity() -
-              pld_rel_pos_ * pld_rel_pos_.transpose() / kCableLenSq;
+              pld_rel_pos_ * pld_rel_pos_.transpose() / cable_len_sq_;
   const double sq_nrm = pld_rel_pos_.squaredNorm();
-  if (sq_nrm < kCableLenSq) {
-    const double z_sq = kCableLenSq - sq_nrm;
+  if (sq_nrm < cable_len_sq_) {
+    const double z_sq = cable_len_sq_ - sq_nrm;
     const double z = sqrt(z_sq);
     iz_ = 1.0 / z;
 
     pld_rel_pos_full_.z() = -z;
     pld_rel_vel_full_.z() = iz_ * pld_rel_pos_.dot(pld_rel_vel_);
 
-    const Eigen::Vector2d B_rc = z / kCableLenSq * pld_rel_pos_;
-    B_frak_ << B_lc, B_rc, B_rc.transpose(), sq_nrm / kCableLenSq;
+    const Eigen::Vector2d B_rc = z / cable_len_sq_ * pld_rel_pos_;
+    B_frak_ << B_lc, B_rc, B_rc.transpose(), sq_nrm / cable_len_sq_;
 
     pld_abs_pos_ = uav_pos_ - pld_rel_pos_full_;
     pld_abs_vel_ = uav_vel_ - pld_rel_vel_full_;
@@ -191,33 +204,33 @@ void RobustTracker::updateTranslationalErrors(double dt) {
 void RobustTracker::updateDisturbanceEstimates(double dt) {
   uav_de_.value = uav_de_.integral.value();
 
-  proj_de_ = uav_de_.value - uav_de_.value.dot(pld_rel_pos_full_) / kCableLenSq *
-                                 pld_rel_pos_full_;
+  proj_de_ = uav_de_.value - uav_de_.value.dot(pld_rel_pos_full_) /
+                                 cable_len_sq_ * pld_rel_pos_full_;
   // ∫ Σ(...) + Δ_T + (m_p + M_q) * g_I
-  total_de_.value =
-      total_de_.gain * (kSysMass * pld_abs_vel_ + kUavMass * pld_rel_vel_full_ -
-                        total_de_.integral.value());
+  total_de_.value = total_de_.gain *
+                    (sys_mass_ * pld_abs_vel_ + uav_mass_ * pld_rel_vel_full_ -
+                     total_de_.integral.value());
 
   computePayloadStateEstimates();
 
   uav_de_.integral.integrate(
       uav_de_.gain * B_frak_ *
-          (kUavMass * uav_acc_ - thrust_act_ - kUavWeight - uav_de_.value),
+          (uav_mass_ * uav_acc_ - thrust_act_ - uav_weight_ - uav_de_.value),
       dt);
 
   total_de_.integral.integrate(
-      total_de_.value + thrust_act_ + proj_de_ + kSysWeight, dt);
+      total_de_.value + thrust_act_ + proj_de_ + sys_weight_, dt);
 }
 
 void RobustTracker::computePayloadStateEstimates() {
   using std::sqrt;
-  pld_trim_est_ = -(kPldWeight + total_de_.value);
+  pld_trim_est_ = -(pld_weight_ + total_de_.value);
   const double sq_nrm = pld_trim_est_.squaredNorm();
 
   // r_d = l f_dxy / ||f_xdy||
   Eigen::Vector2d pld_rel_pos_sp;
   if (sq_nrm > 0.0) {
-    pld_rel_pos_sp = kCableLen * pld_trim_est_.head<2>() / sqrt(sq_nrm);
+    pld_rel_pos_sp = cable_len_ * pld_trim_est_.head<2>() / sqrt(sq_nrm);
   } else {
     pld_rel_pos_sp.setZero();
   }

@@ -29,8 +29,6 @@ class TestController : public ::testing::Test {
   static constexpr double kUavMass = 1.63;
   static constexpr double kPldMass = 0.5;
 
-  TestController() : tracker(kUavMass, kPldMass, kCableLength) {}
-
   std::unordered_map<std::string, Eigen::MatrixXd> dataset;
   control::RobustTracker tracker;
 
@@ -43,6 +41,9 @@ class TestController : public ::testing::Test {
       ASSERT_TRUE(ifs.is_open()) << "Failed to open: " << TEST_DATAFILE << "\n";
       ASSERT_NO_THROW(ifs >> root) << "Json parsing failed!\n";
     }
+    ASSERT_NO_THROW(p.uav_mass = root["uav_mass"]);
+    ASSERT_NO_THROW(p.pld_mass = root["pld_mass"]);
+    ASSERT_NO_THROW(p.cable_length = root["cable_len"]);
     ASSERT_NO_THROW(p.k_swing = root["control"]["k_swing"]);
     ASSERT_NO_THROW(p.k_trim = root["control"]["k_trim"]);
     ASSERT_NO_THROW(p.k_filter_leak = root["control"]["k_filter_leak"]);
@@ -51,7 +52,7 @@ class TestController : public ::testing::Test {
     ASSERT_NO_THROW(p.k_pos_err = root["control"]["k_pos_err"]);
     ASSERT_NO_THROW(p.total_de_gain = root["control"]["total_de_gain"]);
     ASSERT_NO_THROW(p.uav_de_gain = root["control"]["uav_de_gain"]);
-    ASSERT_TRUE(tracker.setParams(p));
+    ASSERT_TRUE(tracker.loadParams(p));
 
     {
       std::ifstream ifs(TEST_DATAFILE);

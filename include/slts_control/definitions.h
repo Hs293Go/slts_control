@@ -18,7 +18,16 @@ struct NumDiffMode {
   static constexpr struct Backward_t { Backward_t() = default; } Backward{};
 };
 
+enum class Frame { kENU, kNED };
+
+enum class Status { kIcUnset, kParamsUnset };
+
 struct RobustTrackerParams {
+  Frame frame{Frame::kNED};
+  double uav_mass;
+  double pld_mass;
+  double cable_length;
+
   double k_pos_err = 0.24;
   double k_gen_trans_err = 0.10;
   double k_trim = 5;
