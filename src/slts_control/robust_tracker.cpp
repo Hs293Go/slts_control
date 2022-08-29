@@ -14,17 +14,21 @@
 namespace control {
 RobustTracker::RobustTracker() : param_set_(false), ic_set_(false) {}
 
-bool RobustTracker::computeControlOutput(double dt) {
-  if (!param_set_ || !ic_set_) {
-    return false;
+RobustTracker::Status RobustTracker::computeControlOutput(double dt) {
+  if (!param_set_) {
+    return Status::kParamsUnset;
+  }
+
+  if (!ic_set_) {
+    return Status::kIcUnset;
   }
 
   if (!computeFullVelocity()) {
-    return false;
+    return Status::kRelativeVelocityFault;
   }
 
   if (dt < 1e-10) {
-    return false;
+    return Status::kTimeStepFault;
   }
   updateDisturbanceEstimates(dt);
   updateTranslationalErrors(dt);
@@ -38,7 +42,7 @@ bool RobustTracker::computeControlOutput(double dt) {
 
   auto trim_force = -uav_weight_ + pld_trim_est_ - proj_de_;
   thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
-  return true;
+  return Status::kRunning;
 }
 
 bool RobustTracker::loadParams(const Params& p) {

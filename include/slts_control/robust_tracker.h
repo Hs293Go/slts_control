@@ -18,6 +18,7 @@ class RobustTracker {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   using Params = RobustTrackerParams;
   using InitialConditions = RobustTrackerInitialConditions;
+  using Status = RobustTrackerStatus;
 
   RobustTracker();
   RobustTracker(const RobustTracker&) = delete;
@@ -42,7 +43,7 @@ class RobustTracker {
                                      const Eigen::Vector3d& pld_vel_sp);
 
   bool computeFullVelocity();
-  bool computeControlOutput(double dt);
+  Status computeControlOutput(double dt);
 
   inline Eigen::Vector3d& uav_pos() { return uav_pos_; }
   inline Eigen::Vector3d& uav_vel() { return uav_vel_; }

@@ -28,7 +28,13 @@ struct NumDiffMode {
 
 enum class Frame { kENU, kNED };
 
-enum class Status { kIcUnset, kParamsUnset };
+enum class RobustTrackerStatus {
+  kIcUnset,
+  kParamsUnset,
+  kRelativeVelocityFault,
+  kTimeStepFault,
+  kRunning
+};
 
 struct RobustTrackerParams {
   Frame frame{Frame::kNED};
