@@ -1,7 +1,13 @@
-#ifndef INTEGRAL_H
-#define INTEGRAL_H
+// Copyright (c) 2022 hs293go
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
+#ifndef SLTS_CONTROL_INTEGRAL_H_
+#define SLTS_CONTROL_INTEGRAL_H_
 
 #include <Eigen/Core>
+#include <utility>
 
 namespace math {
 
@@ -76,4 +82,4 @@ class Integral {
   bool bounds_set_;
 };
 }  // namespace math
-#endif  // INTEGRAL_H
+#endif  // SLTS_CONTROL_INTEGRAL_H_

@@ -7,20 +7,18 @@
 
 #include <Eigen/Core>
 #include <fstream>
-#include <nlohmann/json.hpp>
 #include <unordered_map>
 
+#include "nlohmann/json.hpp"
 #include "slts_control/definitions.h"
 #include "slts_control/robust_tracker.h"
 
-using namespace std::string_literals;
-
 #ifndef TEST_DATAFILE
-#error YOU DID NOT SET THE TEST DATAFILE MACRO CORRECTLY WHEN COMPILING THIS FILE!
+#error YOU DID NOT SET THE TEST DATAFILE MACRO WHEN COMPILING THIS FILE!
 #endif
 
 #ifndef TEST_PARAMFILE
-#error YOU DID NOT SET THE TEST DATAFILE MACRO CORRECTLY WHEN COMPILING THIS FILE!
+#error YOU DID NOT SET THE TEST DATAFILE MACRO WHEN COMPILING THIS FILE!
 #endif
 
 class TestController : public ::testing::Test {
@@ -41,17 +39,18 @@ class TestController : public ::testing::Test {
       ASSERT_TRUE(ifs.is_open()) << "Failed to open: " << TEST_DATAFILE << "\n";
       ASSERT_NO_THROW(ifs >> root) << "Json parsing failed!\n";
     }
-    ASSERT_NO_THROW(p.uav_mass = root["uav_mass"]);
-    ASSERT_NO_THROW(p.pld_mass = root["pld_mass"]);
-    ASSERT_NO_THROW(p.cable_length = root["cable_len"]);
-    ASSERT_NO_THROW(p.k_swing = root["control"]["k_swing"]);
-    ASSERT_NO_THROW(p.k_trim = root["control"]["k_trim"]);
-    ASSERT_NO_THROW(p.k_filter_leak = root["control"]["k_filter_leak"]);
-    ASSERT_NO_THROW(p.k_filter_gain = root["control"]["k_filter_gain"]);
-    ASSERT_NO_THROW(p.k_gen_trans_err = root["control"]["k_gen_trans_err"]);
-    ASSERT_NO_THROW(p.k_pos_err = root["control"]["k_pos_err"]);
-    ASSERT_NO_THROW(p.total_de_gain = root["control"]["total_de_gain"]);
-    ASSERT_NO_THROW(p.uav_de_gain = root["control"]["uav_de_gain"]);
+    ASSERT_NO_THROW(p.uav_mass = root.at("uav_mass"));
+    ASSERT_NO_THROW(p.pld_mass = root.at("pld_mass"));
+    ASSERT_NO_THROW(p.cable_length = root.at("cable_len"));
+    ASSERT_NO_THROW(p.k_swing = root.at("control").at("k_swing"));
+    ASSERT_NO_THROW(p.k_trim = root.at("control").at("k_trim"));
+    ASSERT_NO_THROW(p.k_filter_leak = root.at("control").at("k_filter_leak"));
+    ASSERT_NO_THROW(p.k_filter_gain = root.at("control").at("k_filter_gain"));
+    ASSERT_NO_THROW(p.k_gen_trans_err =
+                        root.at("control").at("k_gen_trans_err"));
+    ASSERT_NO_THROW(p.k_pos_err = root.at("control").at("k_pos_err"));
+    ASSERT_NO_THROW(p.total_de_gain = root.at("control").at("total_de_gain"));
+    ASSERT_NO_THROW(p.uav_de_gain = root.at("control").at("uav_de_gain"));
     ASSERT_TRUE(tracker.loadParams(p));
 
     {
@@ -63,9 +62,11 @@ class TestController : public ::testing::Test {
     for (const auto& tup : root.items()) {
       const auto& key = tup.key();
       const auto& it = tup.value();
-      const auto& sz = it["size"];
-      const auto& val = it["value"];
-      dataset.emplace(key, Eigen::MatrixXd(int(sz[0]), int(sz[1])));
+      const auto& sz = it.at("size");
+      const auto& val = it.at("value");
+      const int rows = sz[0];
+      const int cols = sz[1];
+      dataset.emplace(key, Eigen::MatrixXd(rows, cols));
       std::copy(val.begin(), val.end(), dataset[key].data());
     }
   }
@@ -137,7 +138,8 @@ TEST_F(TestController, testController) {
     ASSERT_NO_THROW(pld_pos_err = dataset.at("pld_pos_err").col(i));
     ASSERT_NO_THROW(pld_vel_err = dataset.at("pld_vel_err").col(i));
     ASSERT_NO_THROW(pld_vel_sp = dataset.at("pld_vel_sp").col(i));
-    tracker.setPayloadRelativePosition(dt, -dataset.at("pld_rel_pos").col(i + 1),
+    tracker.setPayloadRelativePosition(dt,
+                                       -dataset.at("pld_rel_pos").col(i + 1),
                                        control::NumDiffMode::Forward);
     tracker.uav_vel() = uav_vel;
     tracker.uav_acc() = uav_acc;

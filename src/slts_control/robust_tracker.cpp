@@ -122,7 +122,8 @@ bool RobustTracker::setInitialConditions(const InitialConditions& ic) {
 }
 
 void RobustTracker::setPayloadTranslationalErrors(
-    const Eigen::Vector3d& pld_pos_err, const Eigen::Vector3d& pld_pos_err_rates,
+    const Eigen::Vector3d& pld_pos_err,
+    const Eigen::Vector3d& pld_pos_err_rates,
     const Eigen::Vector3d& pld_vel_err, const Eigen::Vector3d& pld_vel_sp) {
   pld_pos_err_ = pld_pos_err;
   pld_pos_err_rates_ = pld_pos_err_rates;
@@ -194,7 +195,8 @@ void RobustTracker::updateTranslationalErrors(double dt) {
   trans_cross_feeding_ = scaled_pos_err + filt_cross_feeding - pld_vel_sp_;
 
   const Eigen::Vector3d filt_cross_feeding_rates =
-      -k_filter_leak_ * filt_cross_feeding + k_filter_gain_ * raw_cross_feeding_;
+      -k_filter_leak_ * filt_cross_feeding +
+      k_filter_gain_ * raw_cross_feeding_;
   auto scaled_pos_err_rates = k_pos_err_ * pld_pos_err_rates_;
   trans_cross_feeding_rates_ = scaled_pos_err_rates + filt_cross_feeding_rates;
 
@@ -234,7 +236,8 @@ void RobustTracker::computePayloadStateEstimates() {
   } else {
     pld_rel_pos_sp.setZero();
   }
-  const Eigen::Vector2d swing_error = k_swing_ * (pld_rel_pos_ - pld_rel_pos_sp);
+  const Eigen::Vector2d swing_error =
+      k_swing_ * (pld_rel_pos_ - pld_rel_pos_sp);
   const Eigen::Vector2d gen_swing_speed = pld_rel_vel_ + swing_error;
   raw_cross_feeding_.head<2>() = gen_swing_speed;
 

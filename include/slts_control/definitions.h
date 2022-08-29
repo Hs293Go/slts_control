@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#ifndef DEFINITIONS_H
-#define DEFINITIONS_H
+#ifndef SLTS_CONTROL_DEFINITIONS_H_
+#define SLTS_CONTROL_DEFINITIONS_H_
 
 #include <Eigen/Dense>
 
@@ -13,9 +13,17 @@
 namespace control {
 
 struct NumDiffMode {
-  static constexpr struct Forward_t { Forward_t() = default; } Forward{};
+  struct Forward_t {
+    Forward_t() = default;
+  };
 
-  static constexpr struct Backward_t { Backward_t() = default; } Backward{};
+  struct Backward_t {
+    Backward_t() = default;
+  };
+
+  static constexpr Forward_t Forward{};
+
+  static constexpr Backward_t Backward{};
 };
 
 enum class Frame { kENU, kNED };
@@ -65,4 +73,4 @@ struct DisturbanceEstimate {
 
 }  // namespace control
 
-#endif  // DEFINITIONS_H
+#endif  // SLTS_CONTROL_DEFINITIONS_H_

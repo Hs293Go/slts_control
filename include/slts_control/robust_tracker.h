@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#ifndef ROBUST_TRACKER_H
-#define ROBUST_TRACKER_H
+#ifndef SLTS_CONTROL_ROBUST_TRACKER_H_
+#define SLTS_CONTROL_ROBUST_TRACKER_H_
 
 #include <Eigen/Dense>
 #include <cstdint>
@@ -125,4 +125,4 @@ class RobustTracker {
 
 }  // namespace control
 
-#endif  // ROBUST_TRACKER_H
+#endif  // SLTS_CONTROL_ROBUST_TRACKER_H_
