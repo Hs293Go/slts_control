@@ -9,7 +9,6 @@
 #include <limits>
 
 #include "slts_control/definitions.h"
-#include "slts_control/eigen_utils.h"
 
 namespace control {
 RobustTracker::RobustTracker() : param_set_(false), ic_set_(false) {}
