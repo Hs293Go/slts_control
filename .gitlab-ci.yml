@@ -5,7 +5,7 @@ stages:
   - test
 
 before_script:
-  - apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y git g++ cmake libeigen3-dev libjsoncpp-dev openssh-client
+  - apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y git g++ cmake libeigen3-dev rapidjson-dev openssh-client
   - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/Hs293Go/slts_control_sim.git".insteadOf git@gitlab.com:Hs293Go/slts_control_sim.git
 
 variables:

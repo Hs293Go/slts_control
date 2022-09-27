@@ -5,14 +5,28 @@
 
 #include <gtest/gtest.h>
 
+#define STRINGIZE_IMPL(A) #A
+
+#define STRINGIZE(A) STRINGIZE_IMPL(A)
+#define RAPIDJSON_ASSERT(x)                                       \
+  do {                                                            \
+    if (!(x))                                                     \
+      throw std::runtime_error("Rapidjson exception at " __FILE__ \
+                               ":" STRINGIZE(__LINE__) "");       \
+  } while (0)
+
+#include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/stream.h>
+
 #include <Eigen/Core>
+#include <exception>
 #include <fstream>
 #include <unordered_map>
 
-#include "nlohmann/json.hpp"
 #include "slts_control/definitions.h"
 #include "slts_control/robust_tracker.h"
-
 #ifndef TEST_DATAFILE
 #error YOU DID NOT SET THE TEST DATAFILE MACRO WHEN COMPILING THIS FILE!
 #endif
@@ -31,43 +45,52 @@ class TestController : public ::testing::Test {
   control::RobustTracker tracker;
 
   void SetUp() {
-    using nlohmann::json;
+    using rapidjson::Document;
+    using rapidjson::IStreamWrapper;
+    using rapidjson::Value;
     control::RobustTracker::Params p;
-    json root;
+    Document root;
     {
       std::ifstream ifs(TEST_PARAMFILE);
       ASSERT_TRUE(ifs.is_open()) << "Failed to open: " << TEST_DATAFILE << "\n";
-      ASSERT_NO_THROW(ifs >> root) << "Json parsing failed!\n";
+      IStreamWrapper isw(ifs);
+      ASSERT_NO_THROW(root.ParseStream(isw)) << "Json parsing failed!\n";
     }
-    ASSERT_NO_THROW(p.uav_mass = root.at("uav_mass"));
-    ASSERT_NO_THROW(p.pld_mass = root.at("pld_mass"));
-    ASSERT_NO_THROW(p.cable_length = root.at("cable_len"));
-    ASSERT_NO_THROW(p.k_swing = root.at("control").at("k_swing"));
-    ASSERT_NO_THROW(p.k_trim = root.at("control").at("k_trim"));
-    ASSERT_NO_THROW(p.k_filter_leak = root.at("control").at("k_filter_leak"));
-    ASSERT_NO_THROW(p.k_filter_gain = root.at("control").at("k_filter_gain"));
-    ASSERT_NO_THROW(p.k_gen_trans_err =
-                        root.at("control").at("k_gen_trans_err"));
-    ASSERT_NO_THROW(p.k_pos_err = root.at("control").at("k_pos_err"));
-    ASSERT_NO_THROW(p.total_de_gain = root.at("control").at("total_de_gain"));
-    ASSERT_NO_THROW(p.uav_de_gain = root.at("control").at("uav_de_gain"));
+    ASSERT_NO_THROW(p.uav_mass = root["uav_mass"].GetDouble());
+    ASSERT_NO_THROW(p.pld_mass = root["pld_mass"].GetDouble());
+    ASSERT_NO_THROW(p.cable_length = root["cable_len"].GetDouble());
+    ASSERT_NO_THROW(p.k_swing = root["control"]["k_swing"].GetDouble());
+    ASSERT_NO_THROW(p.k_trim = root["control"]["k_trim"].GetDouble());
+    ASSERT_NO_THROW(p.k_filter_leak =
+                        root["control"]["k_filter_leak"].GetDouble());
+    ASSERT_NO_THROW(p.k_filter_gain =
+                        root["control"]["k_filter_gain"].GetDouble());
+    ASSERT_NO_THROW(p.k_gen_trans_err.setConstant(
+        root["control"]["k_gen_trans_err"].GetDouble()));
+    ASSERT_NO_THROW(
+        p.k_pos_err.setConstant(root["control"]["k_pos_err"].GetDouble()));
+    ASSERT_NO_THROW(p.total_de_gain =
+                        root["control"]["total_de_gain"].GetDouble());
+    ASSERT_NO_THROW(p.uav_de_gain = root["control"]["uav_de_gain"].GetDouble());
     ASSERT_TRUE(tracker.loadParams(p));
 
     {
       std::ifstream ifs(TEST_DATAFILE);
       ASSERT_TRUE(ifs.is_open()) << "Failed to open: " << TEST_DATAFILE << "\n";
-      ASSERT_NO_THROW(ifs >> root) << "Json parsing failed!\n";
+      IStreamWrapper isw(ifs);
+      ASSERT_NO_THROW(root.ParseStream(isw)) << "Json parsing failed!\n";
     }
 
-    for (const auto& tup : root.items()) {
-      const auto& key = tup.key();
-      const auto& it = tup.value();
-      const auto& sz = it.at("size");
-      const auto& val = it.at("value");
-      const int rows = sz[0];
-      const int cols = sz[1];
+    for (const auto& tup : root.GetObject()) {
+      const auto& key = tup.name.GetString();
+      const auto& it = tup.value;
+      const auto& sz = it["size"].GetArray();
+      const auto& val = it["value"].GetArray();
+      const int rows = sz[0].GetInt();
+      const int cols = sz[1].GetInt();
       dataset.emplace(key, Eigen::MatrixXd(rows, cols));
-      std::copy(val.begin(), val.end(), dataset[key].data());
+      std::transform(val.begin(), val.end(), dataset[key].data(),
+                     std::mem_fn(&Value::GetDouble));
     }
   }
 };

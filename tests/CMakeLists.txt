@@ -1,4 +1,4 @@
-set(ABSL_PROPAGATE_CXX_STD ON)
+find_package(RapidJSON REQUIRED)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -6,11 +6,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG main)
 
-FetchContent_Declare(
-  json
-  URL https://github.com/nlohmann/json/releases/download/v3.10.5/json.tar.xz)
-
-FetchContent_MakeAvailable(googletest json)
+FetchContent_MakeAvailable(googletest)
 
 add_executable(test_controller test_controller.cpp)
 target_compile_definitions(
@@ -20,9 +16,8 @@ target_compile_definitions(
     TEST_PARAMFILE="${CMAKE_CURRENT_SOURCE_DIR}/slts_control_sim/params.json")
 target_include_directories(test_controller PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-target_link_libraries(
-  test_controller PRIVATE Eigen3::Eigen GTest::gtest GTest::gtest_main
-                          nlohmann_json::nlohmann_json robust_tracker)
+target_link_libraries(test_controller PRIVATE Eigen3::Eigen GTest::gtest
+                                              GTest::gtest_main robust_tracker)
 
 include(GoogleTest)
 gtest_discover_tests(test_controller)
