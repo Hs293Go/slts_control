@@ -74,8 +74,8 @@ class RobustTracker {
   Eigen::Vector3d uav_weight_;
   Eigen::Vector3d sys_weight_;
 
-  double k_pos_err_;
-  double k_gen_trans_err_;
+  Eigen::Vector3d k_pos_err_;
+  Eigen::Vector3d k_gen_trans_err_;
   double k_trim_;
   double k_swing_;
   double k_filter_gain_;

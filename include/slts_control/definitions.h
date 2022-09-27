@@ -42,8 +42,8 @@ struct RobustTrackerParams {
   double pld_mass;
   double cable_length;
 
-  double k_pos_err = 0.24;
-  double k_gen_trans_err = 0.10;
+  Eigen::VectorXd k_pos_err{Eigen::Vector3d::Constant(0.24)};
+  Eigen::VectorXd k_gen_trans_err{Eigen::Vector3d::Constant(0.10)};
   double k_trim = 5;
   double k_swing = 0.15;
   double total_de_gain = 0.5;

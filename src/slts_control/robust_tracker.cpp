@@ -36,8 +36,9 @@ RobustTracker::Status RobustTracker::computeControlOutput(double dt) {
       -uav_mass_ * (trans_cross_feeding_rates_ + translational_sync_);
   auto motion_compensator =
       -k_trim_ * (pld_abs_vel_ + trans_cross_feeding_ + raw_cross_feeding_);
-  auto trans_compensator = -pld_mass_ * (trans_cross_feeding_rates_ +
-                                         k_gen_trans_err_ * gen_trans_err_);
+  auto trans_compensator =
+      -pld_mass_ * (trans_cross_feeding_rates_ +
+                    k_gen_trans_err_.cwiseProduct(gen_trans_err_));
 
   auto trim_force = -uav_weight_ + pld_trim_est_ - proj_de_;
   thrust_sp_ = sync_force + motion_compensator + trans_compensator + trim_force;
@@ -191,7 +192,7 @@ bool RobustTracker::computeFullVelocity() {
 }
 
 void RobustTracker::updateTranslationalErrors(double dt) {
-  const Eigen::Vector3d scaled_pos_err = k_pos_err_ * pld_pos_err_;
+  const Eigen::Vector3d scaled_pos_err = k_pos_err_.cwiseProduct(pld_pos_err_);
   gen_trans_err_ = scaled_pos_err + pld_vel_err_;
 
   const Eigen::Vector3d& filt_cross_feeding = filt_cross_feeding_.value();
@@ -200,7 +201,7 @@ void RobustTracker::updateTranslationalErrors(double dt) {
   const Eigen::Vector3d filt_cross_feeding_rates =
       -k_filter_leak_ * filt_cross_feeding +
       k_filter_gain_ * raw_cross_feeding_;
-  auto scaled_pos_err_rates = k_pos_err_ * pld_pos_err_rates_;
+  auto scaled_pos_err_rates = k_pos_err_.cwiseProduct(pld_pos_err_rates_);
   trans_cross_feeding_rates_ = scaled_pos_err_rates + filt_cross_feeding_rates;
 
   filt_cross_feeding_.integrate(filt_cross_feeding_rates, dt);
