@@ -1,0 +1,95 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsfonts, amsthm}
+
+
+\begin{document}
+
+\section{Formula reference}
+
+\subsection{Estimated Augmented States}
+\begin{enumerate}
+    \item Payload Trim
+          \begin{equation}
+              \hat{\mathbf{f}}_d = -\left(m_pg\mathbf{1}_3 + \hat{\mathbf{d}}_\perp\right)
+          \end{equation}
+
+    \item Total Trim
+          \begin{equation}
+              \hat{\mathbf{f}}_t = -m_bg\mathbf{1}_3 + \hat{\mathbf{f}}_d - \hat{\mathbf{d}}_T
+          \end{equation}
+
+    \item Equilibrium Swing
+          \begin{equation}
+              \hat{\mathbf{r}}_d = l\frac{\hat{\mathbf{f}}_{d1:2}}{\left\lVert\hat{\mathbf{f}}_d\right\rVert}
+          \end{equation}
+\end{enumerate}
+
+\subsection{Error Quantities}
+
+\begin{enumerate}
+    \item Translational Error
+          \begin{equation}
+              \mathbf{s}_p = k_p\mathbf{e}_p + \mathbf{e}_v
+          \end{equation}
+
+    \item Swing Error
+          \begin{equation}
+              \hat{\boldsymbol{\mu}} = k_L\left(\mathbf{r} - \hat{\mathbf{r}}_d\right)
+          \end{equation}
+
+    \item Cross Feeding
+          \begin{equation}
+              \hat{\mathtt{R}} = \mathbf{B}\left(\mathbf{v} + \hat{\boldsymbol{\mu}}\right)
+          \end{equation}
+
+    \item Filtered Cross Feeding (Rates)
+          \begin{equation}
+              \hat{\mathtt{F}} = \frac{k_r}{s + \lambda}\hat{\mathtt{R}}(s) \; \mid \; \dot{\hat{\mathtt{F}}} = -\lambda\hat{\mathtt{F}} + k_r\hat{\mathtt{R}}
+          \end{equation}
+
+    \item Generalized Cross Feeding
+          \begin{equation}
+              \hat{\boldsymbol{\zeta}} = k_p\mathbf{e}_p + \hat{\mathtt{F}} - \mathbf{v}_d \;\mid\;\dot{\hat{\boldsymbol{\zeta}}} = k_p\dot{\mathbf{e}}_p - \lambda\hat{\mathtt{F}} + k_r\hat{\mathtt{R}}
+          \end{equation}
+\end{enumerate}
+
+\subsection{Disturbance Estimation Law}
+
+\begin{enumerate}
+    \item Disturbance on UAV
+          \begin{equation}
+              \hat{\mathbf{d}}_b = \kappa\int_0^t\boldsymbol{\mathfrak{B}}\left(m_b\dot{\mathbf{v}}_b - \mathbf{f}_L - m_bg\mathbf{1}_3 - \hat{\mathbf{d}}_b\right)d\tau
+          \end{equation}
+
+    \item Disturbance projected to cable perpendicular
+          \begin{equation}
+              \hat{\mathbf{d}}_\perp = \boldsymbol{\ell} - \frac{\hat{\mathbf{d}}_b^\top\boldsymbol{\ell}}{l^2}\boldsymbol{\ell}
+          \end{equation}
+
+    \item Total disturbance
+          \begin{equation}
+              \hat{\mathbf{d}}_T = \lambda_T\left(\underbrace{(m_p+m_b)}_{m_{sys}}\mathbf{v}_p + m_b\mathbf{B}\mathbf{v} - \int_0^t\left(\mathbf{f}_L + \hat{\mathbf{d}}_\perp + \hat{\mathbf{d}}_T + \left(m_p+m_b\right)g\mathbf{1}_3\right)d\tau\right)
+          \end{equation}
+\end{enumerate}
+
+\subsection{Control Law}
+
+\begin{enumerate}
+    \item Sync Force
+          \begin{equation}
+              \hat{\mathbf{f}}_0 = -m_b\left(\hat{\boldsymbol{\zeta}} + k_L\mathbf{B}\mathbf{v} + \dot{\mathbf{B}}\hat{\boldsymbol{\mu}}\right)
+          \end{equation}
+
+    \item Swing Compensator
+          \begin{equation}
+              \hat{\mathbf{f}}_a = K_0\left(\mathbf{v}_p + \hat{\boldsymbol{\zeta}} + \underbrace{\mathbf{B}\left(\mathbf{v} + \hat{\boldsymbol{\mu}}\right)}_{\mathtt{R}}\right)
+          \end{equation}
+
+    \item Translational Compensator
+          \begin{equation}
+              \hat{\mathbf{f}}_b = m_p\left(\hat{\boldsymbol{\zeta}} + k_p\mathbf{s}_p\right)
+          \end{equation}
+\end{enumerate}
+
+\end{document}
