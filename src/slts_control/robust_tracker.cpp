@@ -46,6 +46,7 @@ RobustTracker::Status RobustTracker::computeControlOutput(double dt) {
 }
 
 bool RobustTracker::loadParams(const Params& p) {
+  frame_ = p.frame;
   uav_mass_ = p.uav_mass;
   if (p.uav_mass < 0.0) {
     return false;
@@ -63,7 +64,7 @@ bool RobustTracker::loadParams(const Params& p) {
   }
   cable_len_sq_ = cable_len_ * cable_len_;
 
-  const double grav_const = p.frame == Frame::kNED ? 9.80665 : -9.80665;
+  const double grav_const = frame_ == Frame::kNED ? 9.80665 : -9.80665;
   pld_weight_ = pld_mass_ * grav_const * Eigen::Vector3d::UnitZ();
   uav_weight_ = uav_mass_ * grav_const * Eigen::Vector3d::UnitZ();
   sys_weight_ = pld_weight_ + uav_weight_;
@@ -177,7 +178,7 @@ bool RobustTracker::computeFullVelocity() {
     const double z = sqrt(z_sq);
     iz_ = 1.0 / z;
 
-    pld_rel_pos_full_.z() = -z;
+    pld_rel_pos_full_.z() = frame_ == Frame::kNED ? -z : z;
     pld_rel_vel_full_.z() = iz_ * pld_rel_pos_.dot(pld_rel_vel_);
 
     const Eigen::Vector2d B_rc = z / cable_len_sq_ * pld_rel_pos_;

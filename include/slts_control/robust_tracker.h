@@ -82,6 +82,7 @@ class RobustTracker {
   double k_filter_leak_;
   bool param_set_{false};
   bool ic_set_{false};
+  Frame frame_{Frame::kNED};
 
   double iz_;
 
