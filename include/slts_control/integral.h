@@ -19,21 +19,6 @@ auto Clamp(const Eigen::MatrixBase<Derived1>& x,
   return x.cwiseMax(lb).cwiseMin(ub);
 }
 
-template <typename Derived>
-void setEigenObj(Eigen::DenseBase<Derived>& dst, typename Derived::Scalar src) {
-  dst.setConstant(src);
-}
-
-template <typename Derived1, typename Derived2>
-void setEigenObj(Eigen::DenseBase<Derived2>& dst,
-                 const Eigen::DenseBase<Derived1>& src) {
-  if (src.size() == 1) {
-    setEigenObj(dst, src.value());
-    return;
-  }
-  dst = src;
-}
-
 }  // namespace details
 
 template <typename _MatrixType>
@@ -53,9 +38,10 @@ class Integral {
   explicit Integral(const Eigen::MatrixBase<Derived>& ic) : value_(ic) {}
 
   template <typename T1, typename T2>
-  bool setBounds(T1&& ub, T2&& lb) {
-    details::setEigenObj(ub_, std::forward<T1>(ub));
-    details::setEigenObj(lb_, std::forward<T2>(lb));
+  bool setBounds(const Eigen::MatrixBase<T1>& ub,
+                 const Eigen::MatrixBase<T2>& lb) {
+    ub_ = ub;
+    lb_ = lb;
 
     if ((ub_.array() < ub_.array()).any()) {
       return bounds_set_ = false;

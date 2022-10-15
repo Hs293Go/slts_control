@@ -42,22 +42,25 @@ struct RobustTrackerParams {
   double pld_mass;
   double cable_length;
 
-  Eigen::VectorXd k_pos_err{Eigen::Vector3d::Constant(0.24)};
-  Eigen::VectorXd k_gen_trans_err{Eigen::Vector3d::Constant(0.10)};
+  Eigen::Vector3d k_pos_err{Eigen::Vector3d::Constant(0.24)};
+  Eigen::Vector3d k_gen_trans_err{Eigen::Vector3d::Constant(0.10)};
   double k_trim = 5;
   double k_swing = 0.15;
-  double total_de_gain = 0.5;
-  Eigen::VectorXd total_de_ub{Eigen::Vector3d::Constant(10.0)};
-  Eigen::VectorXd total_de_lb{Eigen::Vector3d::Constant(-10.0)};
+  Eigen::Vector3d total_de_gain{Eigen::Vector3d::Constant(0.5)};
+  Eigen::Vector3d total_de_ub{Eigen::Vector3d::Constant(10.0)};
+  Eigen::Vector3d total_de_lb{Eigen::Vector3d::Constant(-10.0)};
 
-  double uav_de_gain = 0.9;
-  Eigen::VectorXd uav_de_ub{Eigen::Vector3d::Constant(10.0)};
-  Eigen::VectorXd uav_de_lb{Eigen::Vector3d::Constant(-10.0)};
+  Eigen::Vector3d uav_de_gain{Eigen::Vector3d::Constant(0.9)};
+  Eigen::Vector3d uav_de_ub{Eigen::Vector3d::Constant(10.0)};
+  Eigen::Vector3d uav_de_lb{Eigen::Vector3d::Constant(-10.0)};
 
   double k_filter_leak = 0.4;
   double k_filter_gain = 0.2;
-  Eigen::VectorXd filt_cross_feeding_ub{Eigen::Vector3d::Constant(10.0)};
-  Eigen::VectorXd filt_cross_feeding_lb{Eigen::Vector3d::Constant(-10.0)};
+  Eigen::Vector3d filt_cross_feeding_ub{Eigen::Vector3d::Constant(10.0)};
+  Eigen::Vector3d filt_cross_feeding_lb{Eigen::Vector3d::Constant(-10.0)};
+
+  Eigen::Vector3d pld_rel_vel_ub{Eigen::Vector3d::Constant(0.5)};
+  Eigen::Vector3d pld_rel_vel_lb{Eigen::Vector3d::Constant(-0.5)};
 };
 
 struct RobustTrackerInitialConditions {
@@ -70,7 +73,7 @@ struct RobustTrackerInitialConditions {
 
 namespace details {
 struct DisturbanceEstimate {
-  double gain;
+  Eigen::Vector3d gain;
   math::Integral<Eigen::Vector3d> integral;
   Eigen::Vector3d value;
 };

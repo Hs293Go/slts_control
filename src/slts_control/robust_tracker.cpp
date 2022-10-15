@@ -142,7 +142,8 @@ void RobustTracker::setPayloadRelativePosition<NumDiffMode::Backward_t>(
   if (dt < 1e-10) {
     return;
   }
-  pld_rel_vel_ = (pld_rel_pos - pld_rel_pos_) / dt;
+  pld_rel_vel_ =
+      ((pld_rel_pos - pld_rel_pos_) / dt).cwiseMax(-0.25).cwiseMin(0.25);
   pld_rel_pos_ = pld_rel_pos;
 }
 
@@ -214,15 +215,15 @@ void RobustTracker::updateDisturbanceEstimates(double dt) {
   proj_de_ = uav_de_.value - uav_de_.value.dot(pld_rel_pos_full_) /
                                  cable_len_sq_ * pld_rel_pos_full_;
   // ∫ Σ(...) + Δ_T + (m_p + M_q) * g_I
-  total_de_.value = total_de_.gain *
-                    (sys_mass_ * pld_abs_vel_ + uav_mass_ * pld_rel_vel_full_ -
-                     total_de_.integral.value());
+  total_de_.value = total_de_.gain.cwiseProduct(sys_mass_ * pld_abs_vel_ +
+                                                uav_mass_ * pld_rel_vel_full_ -
+                                                total_de_.integral.value());
 
   computePayloadStateEstimates();
 
   uav_de_.integral.integrate(
-      uav_de_.gain * B_frak_ *
-          (uav_mass_ * uav_acc_ - thrust_act_ - uav_weight_ - uav_de_.value),
+      uav_de_.gain.cwiseProduct(B_frak_ * (uav_mass_ * uav_acc_ - thrust_act_ -
+                                           uav_weight_ - uav_de_.value)),
       dt);
 
   total_de_.integral.integrate(

@@ -69,9 +69,10 @@ class TestController : public ::testing::Test {
         root["control"]["k_gen_trans_err"].GetDouble()));
     ASSERT_NO_THROW(
         p.k_pos_err.setConstant(root["control"]["k_pos_err"].GetDouble()));
-    ASSERT_NO_THROW(p.total_de_gain =
-                        root["control"]["total_de_gain"].GetDouble());
-    ASSERT_NO_THROW(p.uav_de_gain = root["control"]["uav_de_gain"].GetDouble());
+    ASSERT_NO_THROW(p.total_de_gain.setConstant(
+        root["control"]["total_de_gain"].GetDouble()));
+    ASSERT_NO_THROW(
+        p.uav_de_gain.setConstant(root["control"]["uav_de_gain"].GetDouble()));
     ASSERT_TRUE(tracker.loadParams(p));
 
     {
