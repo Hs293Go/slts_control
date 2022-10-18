@@ -1,4 +1,4 @@
 clearvars; close all; clc;
-addpath('slts_control_sim');
-[soln, res] = run_sim('slts_control_sim');
+addpath('slts_control_matlab');
+[soln, res] = SimulationRunner('slts_control_matlab');
 VisualizeTestData(res);

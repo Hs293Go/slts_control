@@ -1,0 +1,57 @@
+{
+  "uav_mass": 1.63,
+  "uav_inertia": [
+    [
+      0.020,
+      0.003,
+      -0.005
+    ],
+    [
+      0.003,
+      0.010,
+      0.002
+    ],
+    [
+      -0.005,
+      0.002,
+      0.030
+    ]
+  ],
+  "pld_mass": 0.5,
+  "cable_len": 0.98,
+  "mission": {
+    "path": [
+      [
+        0,
+        0,
+        -10
+      ],
+      [
+        30,
+        0,
+        -10
+      ],
+      [
+        30,
+        30,
+        -10
+      ],
+      [
+        0,
+        30,
+        -10
+      ]
+    ],
+    "cruise_speed": 3
+  },
+  "control": {
+    "k_swing": 0.15,
+    "k_trim": 5,
+    "k_filter_leak": 0.4,
+    "k_filter_gain": 0.2,
+    "k_gen_trans_err": 0.10,
+    "k_pos_err": 0.24,
+    "total_de_gain": 0.5,
+    "uav_de_gain": 0.9
+  }
+}
