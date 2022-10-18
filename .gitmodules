@@ -1,4 +1,0 @@
-[submodule "tests/slts_control_sim"]
-	path = tests/slts_control_sim
-	url = git@gitlab.com:Hs293Go/slts_control_sim.git
-	branch = main
