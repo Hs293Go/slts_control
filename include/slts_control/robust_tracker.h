@@ -26,35 +26,99 @@ class RobustTracker {
   RobustTracker& operator=(const RobustTracker&) = delete;
   RobustTracker& operator=(RobustTracker&&) = delete;
 
+  /**
+   * @brief Loads controller parameters
+   *
+   * @param p A Params (RobustTrackerParams) struct containing the values for
+   * the parameters
+   * @return true All parameters are valid
+   * @return false Some parameters are invalid, may be due to negative mass or
+   * length parameters or inconsistent upper / lower bounds for bounded values
+   */
   bool loadParams(const Params& p);
 
+  /**
+   * @brief Set the initial conditions for the controller
+   *
+   * @param ic A InitialConditions struct containing the initial values for the
+   * states of the SLTS, including uav position, velocity, acceleration and
+   * payload position and velocity w.r.t. the UAV
+   * @return true All initial conditions are valid
+   * @return false Initial conditions are invalid because supplied payload
+   * relative position violated the cable length constraint
+   */
   bool setInitialConditions(const InitialConditions& ic = {});
 
+  /**
+   * @brief Set the payload relative position (from exteroceptive measurement),
+   * while using numerical differentiation to update payload relative velocity
+   *
+   * @tparam Mode Numerical differential mode. May be NumDiffMode::Forward or
+   * NumDiffMode::Backward
+   * @param dt Time difference for numerical differentiation
+   * @param pld_rel_pos Payload relative position
+   */
   template <typename Mode>
   void setPayloadRelativePosition(double dt, const Eigen::Vector2d& pld_rel_pos,
                                   Mode);
 
+  /**
+   * @brief Set the payload relative position and velocity. The latter is likely
+   * obtained by Mocap (or optical flow?)
+   *
+   * @param pld_rel_pos Payload relative position
+   * @param pld_rel_vel Payload relative velocity
+   */
   void setPayloadRelativePosVel(const Eigen::Vector2d& pld_rel_pos,
                                 const Eigen::Vector2d& pld_rel_vel);
 
+  /**
+   * @brief Set the payload translational errors
+   *
+   * @param pld_pos_err Payload position error, aka a measure of position error
+   * that is normal to the desired path of the payload
+   * @param pld_pos_err_rates Payload position error rates, time derivative of
+   * the above
+   * @param pld_vel_err Payload velocity error, aka a measure of position error
+   * that is tangential to the desired path of the payload
+   * @param pld_vel_sp Payload velocity setpoint
+   */
   void setPayloadTranslationalErrors(const Eigen::Vector3d& pld_pos_err,
                                      const Eigen::Vector3d& pld_pos_err_rates,
                                      const Eigen::Vector3d& pld_vel_err,
                                      const Eigen::Vector3d& pld_vel_sp);
 
+  /**
+   * @brief Updates payload position and velocity absolute states (and a few
+   * other auxiliary quantities) after payload relative position / velocity have
+   * been set.
+   *
+   * @return true Payload relative position is valid
+   * @return false Payload relative position violated cable length constraints
+   */
   bool computeFullVelocity();
+
+  /**
+   * @brief Main control loop function. Runs one control loop and updates the
+   * thrust setpoint
+   *
+   * @param dt Time difference for integration inside the control law
+   * @return Status Status of the controller
+   */
   Status computeControlOutput(double dt);
 
-  inline Eigen::Vector3d& uav_pos() { return uav_pos_; }
-  inline Eigen::Vector3d& uav_vel() { return uav_vel_; }
-  inline Eigen::Vector3d& uav_acc() { return uav_acc_; }
-  inline Eigen::Vector3d& thrust_act() { return thrust_act_; }
+  Eigen::Vector3d& uav_pos() { return uav_pos_; }
+  Eigen::Vector3d& uav_vel() { return uav_vel_; }
+  Eigen::Vector3d& uav_acc() { return uav_acc_; }
+  Eigen::Vector3d& thrust_act() { return thrust_act_; }
 
-  inline const Eigen::Vector3d& pld_abs_pos() const { return pld_abs_pos_; }
-  inline const Eigen::Vector3d& pld_abs_vel() const { return pld_abs_vel_; }
+  const Eigen::Vector3d& pld_abs_pos() const { return pld_abs_pos_; }
+  const Eigen::Vector2d& pld_rel_pos() const { return pld_rel_pos_; }
+  const Eigen::Vector3d& pld_abs_vel() const { return pld_abs_vel_; }
+  const Eigen::Vector2d& pld_rel_vel() const { return pld_rel_vel_; }
 
-  inline const Eigen::Vector3d& thrust_sp() const { return thrust_sp_; }
-  inline double yaw_sp() const { return yaw_sp_; }
+  const Eigen::Vector3d& thrust_sp() const { return thrust_sp_; }
+  double yaw_sp() const { return yaw_sp_; }
 
  private:
   using DisturbanceEstimate = details::DisturbanceEstimate;
