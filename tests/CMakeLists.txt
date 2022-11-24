@@ -1,12 +1,6 @@
 find_package(RapidJSON REQUIRED)
 
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG main)
-
-FetchContent_MakeAvailable(googletest)
+find_package(GTest REQUIRED)
 
 add_executable(test_controller test_controller.cpp)
 target_compile_definitions(
