@@ -1,0 +1,21 @@
+name: test-slts-control
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install gtest manually
+        run: sudo apt-get install libgtest-dev ninja-build
+      - uses: actions/checkout@v1
+      - name: configure
+        run: cmake -S . -B build -DBUILD_TESTING=ON -GNinja
+      - name: make
+        run: cmake --build build --config Release
+      - name: Run CTest
+        run: cd build && ctest -j4 -C Debug -T test --output-on-failure
