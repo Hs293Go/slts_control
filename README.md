@@ -57,13 +57,13 @@ This section walks you through how to use this controller library in your C++ co
 3. Construct the controller object
 
     ``` C++
-    control::RobustTracker ctl;
+    control::SLTSController ctl;
     ```
 
 4. Construct the parameter structure and load it into the controller
 
     ``` C++
-    control::RobustTracker::Params params;
+    control::SLTSController::Params params;
     params.uav_mass = 1.0;
     params.pld_mass = 0.5;
     // Fill in other fields
@@ -76,7 +76,7 @@ This section walks you through how to use this controller library in your C++ co
     * Optionally also load initial conditions
 
         ```  C++
-        control::RobustTracker::InitialConditions ics;
+        control::SLTSController::InitialConditions ics;
         ics.uav_pos << 0.0, 0.0, 0.5;
         // Fill in other fields
         if (!ctl.setInitialConditions(ics)) {

@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
-        run: sudo apt-get install libgtest-dev libeigen3-dev ninja-build rapidjson-dev
+        run: sudo apt-get install libgtest-dev libeigen3-dev ninja-build rapidjson-dev cppcheck clang-tidy
       - uses: actions/checkout@v1
       - name: configure
-        run: cmake -S . -B build -DBUILD_TESTING=ON -GNinja
+        run: cmake -S . -B build --preset=ci-ubuntu
       - name: make
         run: cmake --build build --config Release --target test_controller
       - name: Run CTest
