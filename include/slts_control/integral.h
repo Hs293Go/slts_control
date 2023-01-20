@@ -21,15 +21,15 @@ auto Clamp(const Eigen::MatrixBase<Derived1>& x,
 
 }  // namespace details
 
-template <typename _MatrixType>
+template <typename Matrix>
 class Integral {
  public:
-  using MatrixType = _MatrixType;
+  using MatrixType = Matrix;
   enum {
-    Size = MatrixType::RowsAtCompileTime,
-    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-    Options = MatrixType::Options,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    kSize = MatrixType::RowsAtCompileTime,
+    kColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    kOptions = MatrixType::Options,
+    kMaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
   };
 
   Integral() : value_(MatrixType::Zero()) {}
@@ -59,7 +59,7 @@ class Integral {
     }
   }
 
-  const MatrixType& value() const { return value_; }
+  [[nodiscard]] const MatrixType& value() const { return value_; }
 
  private:
   MatrixType value_;

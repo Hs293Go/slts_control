@@ -20,7 +20,7 @@ class SLTSController {
   using InitialConditions = SLTSControllerInitialConditions;
   using Status = SLTSControllerStatus;
 
-  SLTSController();
+  SLTSController() = default;
   SLTSController(const SLTSController&) = delete;
   SLTSController(SLTSController&&) = delete;
   SLTSController& operator=(const SLTSController&) = delete;
@@ -112,13 +112,21 @@ class SLTSController {
   Eigen::Vector3d& uav_acc() { return uav_acc_; }
   Eigen::Vector3d& thrust_act() { return thrust_act_; }
 
-  const Eigen::Vector3d& pld_abs_pos() const { return pld_abs_pos_; }
-  const Eigen::Vector2d& pld_rel_pos() const { return pld_rel_pos_; }
-  const Eigen::Vector3d& pld_abs_vel() const { return pld_abs_vel_; }
-  const Eigen::Vector2d& pld_rel_vel() const { return pld_rel_vel_; }
+  [[nodiscard]] const Eigen::Vector3d& pld_abs_pos() const {
+    return pld_abs_pos_;
+  }
+  [[nodiscard]] const Eigen::Vector2d& pld_rel_pos() const {
+    return pld_rel_pos_;
+  }
+  [[nodiscard]] const Eigen::Vector3d& pld_abs_vel() const {
+    return pld_abs_vel_;
+  }
+  [[nodiscard]] const Eigen::Vector2d& pld_rel_vel() const {
+    return pld_rel_vel_;
+  }
 
-  const Eigen::Vector3d& thrust_sp() const { return thrust_sp_; }
-  double yaw_sp() const { return yaw_sp_; }
+  [[nodiscard]] const Eigen::Vector3d& thrust_sp() const { return thrust_sp_; }
+  [[nodiscard]] double yaw_sp() const { return yaw_sp_; }
 
  private:
   using DisturbanceEstimate = details::DisturbanceEstimate;

@@ -11,7 +11,6 @@
 #include "slts_control/definitions.h"
 
 namespace control {
-SLTSController::SLTSController() : param_set_(false), ic_set_(false) {}
 
 SLTSController::Status SLTSController::computeControlOutput(double dt) {
   if (!param_set_) {
@@ -137,8 +136,8 @@ void SLTSController::setPayloadTranslationalErrors(
 }
 
 template <>
-void SLTSController::setPayloadRelativePosition<NumDiffMode::Backward_t>(
-    double dt, const Eigen::Vector2d& pld_rel_pos, NumDiffMode::Backward_t) {
+void SLTSController::setPayloadRelativePosition<NumDiffMode::Backward>(
+    double dt, const Eigen::Vector2d& pld_rel_pos, NumDiffMode::Backward) {
   if (dt < 1e-10) {
     return;
   }
@@ -148,8 +147,8 @@ void SLTSController::setPayloadRelativePosition<NumDiffMode::Backward_t>(
 }
 
 template <>
-void SLTSController::setPayloadRelativePosition<NumDiffMode::Forward_t>(
-    double dt, const Eigen::Vector2d& pld_rel_pos, NumDiffMode::Forward_t) {
+void SLTSController::setPayloadRelativePosition<NumDiffMode::Forward>(
+    double dt, const Eigen::Vector2d& pld_rel_pos, NumDiffMode::Forward) {
   pld_rel_pos_ = numdiff_rel_pos_;
   if (dt < 1e-10) {
     return;
@@ -171,7 +170,7 @@ bool SLTSController::computeFullVelocity() {
   pld_rel_pos_full_.head<2>() = pld_rel_pos_;
   pld_rel_vel_full_.head<2>() = pld_rel_vel_;
 
-  auto B_lc = Eigen::Matrix2d::Identity() -
+  auto b_lc = Eigen::Matrix2d::Identity() -
               pld_rel_pos_ * pld_rel_pos_.transpose() / cable_len_sq_;
   const double sq_nrm = pld_rel_pos_.squaredNorm();
   if (sq_nrm < cable_len_sq_) {
@@ -182,8 +181,8 @@ bool SLTSController::computeFullVelocity() {
     pld_rel_pos_full_.z() = frame_ == Frame::kNED ? -z : z;
     pld_rel_vel_full_.z() = iz_ * pld_rel_pos_.dot(pld_rel_vel_);
 
-    const Eigen::Vector2d B_rc = z / cable_len_sq_ * pld_rel_pos_;
-    B_frak_ << B_lc, B_rc, B_rc.transpose(), sq_nrm / cable_len_sq_;
+    const Eigen::Vector2d b_rc = z / cable_len_sq_ * pld_rel_pos_;
+    B_frak_ << b_lc, b_rc, b_rc.transpose(), sq_nrm / cable_len_sq_;
 
     pld_abs_pos_ = uav_pos_ - pld_rel_pos_full_;
     pld_abs_vel_ = uav_vel_ - pld_rel_vel_full_;
@@ -251,11 +250,11 @@ void SLTSController::computePayloadStateEstimates() {
     const double iz_sq = iz_ * iz_;
     raw_cross_feeding_.z() = iz_ * pld_rel_pos_.dot(gen_swing_speed);
 
-    auto B_factor_rate =
+    auto b_factor_rate =
         (iz_sq * pld_rel_pos_.dot(pld_rel_vel_) * pld_rel_pos_ + pld_rel_vel_) *
         iz_;
     translational_sync_ = k_swing_ * pld_rel_vel_full_;
-    translational_sync_.z() += B_factor_rate.dot(swing_error);
+    translational_sync_.z() += b_factor_rate.dot(swing_error);
   }
 }
 }  // namespace control

@@ -13,17 +13,17 @@
 namespace control {
 
 struct NumDiffMode {
-  struct Forward_t {
-    Forward_t() = default;
+  struct Forward {
+    Forward() = default;
   };
 
-  struct Backward_t {
-    Backward_t() = default;
+  struct Backward {
+    Backward() = default;
   };
 
-  static constexpr Forward_t Forward{};
+  static constexpr Forward kForward{};
 
-  static constexpr Backward_t Backward{};
+  static constexpr Backward kBackward{};
 };
 
 enum class Frame { kENU, kNED };

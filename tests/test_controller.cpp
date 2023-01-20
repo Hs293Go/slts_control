@@ -44,7 +44,7 @@ class TestController : public ::testing::Test {
   std::unordered_map<std::string, Eigen::MatrixXd> dataset;
   control::SLTSController tracker;
 
-  void SetUp() {
+  void SetUp() override {
     using rapidjson::Document;
     using rapidjson::IStreamWrapper;
     using rapidjson::Value;
@@ -99,7 +99,6 @@ class TestController : public ::testing::Test {
 TEST_F(TestController, testPayloadAbsoluteStatesComputation) {
   Eigen::Vector2d pld_rel_pos;
   Eigen::Vector2d pld_rel_vel;
-  Eigen::Vector3d pld_abs_pos;
   Eigen::Vector3d uav_pos;
   Eigen::Vector3d uav_vel;
   Eigen::VectorXd tout;
@@ -107,7 +106,7 @@ TEST_F(TestController, testPayloadAbsoluteStatesComputation) {
   Eigen::Vector3d expected;
   ASSERT_NO_THROW(tout = dataset.at("tout"));
   tracker.setInitialConditions();
-  int data_sz = dataset.at("tout").size();
+  const auto data_sz = dataset.at("tout").size();
   ASSERT_GT(data_sz, 0);
   for (int i = 0; i < data_sz - 1; ++i) {
     ASSERT_NO_THROW(uav_pos = dataset.at("uav_pos").col(i));
@@ -134,7 +133,6 @@ TEST_F(TestController, testPayloadAbsoluteStatesComputation) {
 
 TEST_F(TestController, testController) {
   Eigen::Vector2d pld_rel_pos;
-  Eigen::Vector2d pld_rel_vel;
   Eigen::Vector3d uav_vel;
   Eigen::Vector3d uav_acc;
   Eigen::Vector3d thrust_act;
@@ -150,10 +148,10 @@ TEST_F(TestController, testController) {
   ASSERT_NO_THROW(ic.uav_acc = dataset.at("uav_acc").col(0));
   ASSERT_NO_THROW(ic.uav_vel = dataset.at("uav_vel").col(0));
   ASSERT_TRUE(tracker.setInitialConditions(ic));
-  int data_sz = dataset.at("tout").size();
+  const auto data_sz = dataset.at("tout").size();
   ASSERT_GT(data_sz, 0);
   for (int i = 0; i < data_sz - 1; ++i) {
-    double dt = tout[i + 1] - tout[i];
+    const double dt = tout[i + 1] - tout[i];
     ASSERT_NO_THROW(pld_rel_pos = -dataset.at("pld_rel_pos").col(i));
     ASSERT_NO_THROW(uav_vel = dataset.at("uav_vel").col(i));
     ASSERT_NO_THROW(uav_acc = dataset.at("uav_acc").col(i));
@@ -164,7 +162,7 @@ TEST_F(TestController, testController) {
     ASSERT_NO_THROW(pld_vel_sp = dataset.at("pld_vel_sp").col(i));
     tracker.setPayloadRelativePosition(dt,
                                        -dataset.at("pld_rel_pos").col(i + 1),
-                                       control::NumDiffMode::Forward);
+                                       control::NumDiffMode::kForward);
     tracker.uav_vel() = uav_vel;
     tracker.uav_acc() = uav_acc;
     tracker.thrust_act() = thrust_act;
