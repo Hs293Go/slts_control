@@ -10,59 +10,24 @@ set(COMPILE_OPTS
     "$<$<CONFIG:Debug>:-g3>"
     "$<$<CONFIG:Release>:-O3>")
 
-set(WARN_OPTS -Werror -Wall -Wextra -Wpedantic)
-
 add_library(slts_controller src/${PROJECT_NAME}/slts_controller.cpp)
 target_include_directories(
   slts_controller
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
          "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
   PRIVATE include)
-target_compile_options(
-  slts_controller
-  PUBLIC ${COMPILE_OPTS}
-  PRIVATE ${WARN_OPTS})
+target_compile_options(slts_controller PUBLIC ${COMPILE_OPTS})
+target_compile_features(slts_controller PUBLIC cxx_std_17)
 target_link_libraries(slts_controller PUBLIC Eigen3::Eigen)
 
-install(
-  DIRECTORY include/${PROJECT_NAME}
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  FILES_MATCHING
-  PATTERN "*.h")
-
-install(
-  TARGETS slts_controller
-  EXPORT ${PROJECT_NAME}Targets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  INCLUDES
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-install(
-  EXPORT ${PROJECT_NAME}Targets
-  FILE ${PROJECT_NAME}Targets.cmake
-  NAMESPACE ${PROJECT_NAME}::
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-
-include(CMakePackageConfigHelpers)
-
-# generate the version file for the config file
-write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-  VERSION "${version}"
-  COMPATIBILITY AnyNewerVersion)
-
-configure_package_config_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-              "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-
-include(CTest)
-if(BUILD_TESTING)
-  add_subdirectory(tests EXCLUDE_FROM_ALL)
+if(NOT CMAKE_SKIP_INSTALL_RULES)
+  include(cmake/install_rules.cmake)
 endif()
+
+if(NOT DEVELOPER_MODE)
+  return()
+elseif(NOT PROJECT_IS_TOP_LEVEL)
+  message(AUTHOR_WARNING "Developer mode is intended for developers of shared")
+endif()
+
+include(cmake/dev_mode.cmake)
