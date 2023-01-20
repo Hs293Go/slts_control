@@ -12,7 +12,7 @@ target_compile_definitions(
 target_include_directories(test_controller PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 target_link_libraries(test_controller PRIVATE Eigen3::Eigen GTest::gtest
-                                              GTest::gtest_main robust_tracker)
+                                              GTest::gtest_main slts_controller)
 
 include(GoogleTest)
 gtest_discover_tests(test_controller)

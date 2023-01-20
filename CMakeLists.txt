@@ -12,17 +12,17 @@ set(COMPILE_OPTS
 
 set(WARN_OPTS -Werror -Wall -Wextra -Wpedantic)
 
-add_library(robust_tracker src/${PROJECT_NAME}/robust_tracker.cpp)
+add_library(slts_controller src/${PROJECT_NAME}/slts_controller.cpp)
 target_include_directories(
-  robust_tracker
+  slts_controller
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
          "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
   PRIVATE include)
 target_compile_options(
-  robust_tracker
+  slts_controller
   PUBLIC ${COMPILE_OPTS}
   PRIVATE ${WARN_OPTS})
-target_link_libraries(robust_tracker PUBLIC Eigen3::Eigen)
+target_link_libraries(slts_controller PUBLIC Eigen3::Eigen)
 
 install(
   DIRECTORY include/${PROJECT_NAME}
@@ -31,7 +31,7 @@ install(
   PATTERN "*.h")
 
 install(
-  TARGETS robust_tracker
+  TARGETS slts_controller
   EXPORT ${PROJECT_NAME}Targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

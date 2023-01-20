@@ -13,23 +13,23 @@
 
 namespace control {
 
-class RobustTracker {
+class SLTSController {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  using Params = RobustTrackerParams;
-  using InitialConditions = RobustTrackerInitialConditions;
-  using Status = RobustTrackerStatus;
+  using Params = SLTSControllerParams;
+  using InitialConditions = SLTSControllerInitialConditions;
+  using Status = SLTSControllerStatus;
 
-  RobustTracker();
-  RobustTracker(const RobustTracker&) = delete;
-  RobustTracker(RobustTracker&&) = delete;
-  RobustTracker& operator=(const RobustTracker&) = delete;
-  RobustTracker& operator=(RobustTracker&&) = delete;
+  SLTSController();
+  SLTSController(const SLTSController&) = delete;
+  SLTSController(SLTSController&&) = delete;
+  SLTSController& operator=(const SLTSController&) = delete;
+  SLTSController& operator=(SLTSController&&) = delete;
 
   /**
    * @brief Loads controller parameters
    *
-   * @param p A Params (RobustTrackerParams) struct containing the values for
+   * @param p A Params (SLTSControllerParams) struct containing the values for
    * the parameters
    * @return true All parameters are valid
    * @return false Some parameters are invalid, may be due to negative mass or

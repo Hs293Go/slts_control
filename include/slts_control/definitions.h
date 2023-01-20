@@ -28,7 +28,7 @@ struct NumDiffMode {
 
 enum class Frame { kENU, kNED };
 
-enum class RobustTrackerStatus {
+enum class SLTSControllerStatus {
   kIcUnset,
   kParamsUnset,
   kRelativeVelocityFault,
@@ -36,7 +36,7 @@ enum class RobustTrackerStatus {
   kRunning
 };
 
-struct RobustTrackerParams {
+struct SLTSControllerParams {
   Frame frame{Frame::kNED};
   double uav_mass;
   double pld_mass;
@@ -63,7 +63,7 @@ struct RobustTrackerParams {
   Eigen::Vector3d pld_rel_vel_lb{Eigen::Vector3d::Constant(-0.5)};
 };
 
-struct RobustTrackerInitialConditions {
+struct SLTSControllerInitialConditions {
   Eigen::Vector3d uav_pos{Eigen::Vector3d::Zero()};
   Eigen::Vector3d uav_vel{Eigen::Vector3d::Zero()};
   Eigen::Vector3d uav_acc{Eigen::Vector3d::Zero()};

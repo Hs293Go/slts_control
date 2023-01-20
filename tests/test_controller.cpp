@@ -26,7 +26,7 @@
 #include <unordered_map>
 
 #include "slts_control/definitions.h"
-#include "slts_control/robust_tracker.h"
+#include "slts_control/slts_controller.h"
 #ifndef TEST_DATAFILE
 #error YOU DID NOT SET THE TEST DATAFILE MACRO WHEN COMPILING THIS FILE!
 #endif
@@ -42,13 +42,13 @@ class TestController : public ::testing::Test {
   static constexpr double kPldMass = 0.5;
 
   std::unordered_map<std::string, Eigen::MatrixXd> dataset;
-  control::RobustTracker tracker;
+  control::SLTSController tracker;
 
   void SetUp() {
     using rapidjson::Document;
     using rapidjson::IStreamWrapper;
     using rapidjson::Value;
-    control::RobustTracker::Params p;
+    control::SLTSController::Params p;
     Document root;
     {
       std::ifstream ifs(TEST_PARAMFILE);
@@ -144,7 +144,7 @@ TEST_F(TestController, testController) {
   Eigen::Vector3d pld_vel_sp;
   Eigen::VectorXd tout;
   ASSERT_NO_THROW(tout = dataset.at("tout"));
-  control::RobustTracker::InitialConditions ic;
+  control::SLTSController::InitialConditions ic;
   ASSERT_NO_THROW(ic.pld_rel_pos = -dataset.at("pld_rel_pos").col(0));
   ASSERT_NO_THROW(ic.pld_rel_vel = -dataset.at("pld_rel_vel").col(0));
   ASSERT_NO_THROW(ic.uav_acc = dataset.at("uav_acc").col(0));

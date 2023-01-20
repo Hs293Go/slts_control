@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#include "slts_control/robust_tracker.h"
+#include "slts_control/slts_controller.h"
 
 #include <cstdint>
 #include <limits>
@@ -11,9 +11,9 @@
 #include "slts_control/definitions.h"
 
 namespace control {
-RobustTracker::RobustTracker() : param_set_(false), ic_set_(false) {}
+SLTSController::SLTSController() : param_set_(false), ic_set_(false) {}
 
-RobustTracker::Status RobustTracker::computeControlOutput(double dt) {
+SLTSController::Status SLTSController::computeControlOutput(double dt) {
   if (!param_set_) {
     return Status::kParamsUnset;
   }
@@ -45,7 +45,7 @@ RobustTracker::Status RobustTracker::computeControlOutput(double dt) {
   return Status::kRunning;
 }
 
-bool RobustTracker::loadParams(const Params& p) {
+bool SLTSController::loadParams(const Params& p) {
   frame_ = p.frame;
   uav_mass_ = p.uav_mass;
   if (p.uav_mass < 0.0) {
@@ -114,7 +114,7 @@ bool RobustTracker::loadParams(const Params& p) {
   return true;
 }
 
-bool RobustTracker::setInitialConditions(const InitialConditions& ic) {
+bool SLTSController::setInitialConditions(const InitialConditions& ic) {
   uav_pos_ = ic.uav_pos;
   uav_vel_ = ic.uav_vel;
   uav_acc_ = ic.uav_acc;
@@ -126,7 +126,7 @@ bool RobustTracker::setInitialConditions(const InitialConditions& ic) {
   return ic_set_ = true;
 }
 
-void RobustTracker::setPayloadTranslationalErrors(
+void SLTSController::setPayloadTranslationalErrors(
     const Eigen::Vector3d& pld_pos_err,
     const Eigen::Vector3d& pld_pos_err_rates,
     const Eigen::Vector3d& pld_vel_err, const Eigen::Vector3d& pld_vel_sp) {
@@ -137,7 +137,7 @@ void RobustTracker::setPayloadTranslationalErrors(
 }
 
 template <>
-void RobustTracker::setPayloadRelativePosition<NumDiffMode::Backward_t>(
+void SLTSController::setPayloadRelativePosition<NumDiffMode::Backward_t>(
     double dt, const Eigen::Vector2d& pld_rel_pos, NumDiffMode::Backward_t) {
   if (dt < 1e-10) {
     return;
@@ -148,7 +148,7 @@ void RobustTracker::setPayloadRelativePosition<NumDiffMode::Backward_t>(
 }
 
 template <>
-void RobustTracker::setPayloadRelativePosition<NumDiffMode::Forward_t>(
+void SLTSController::setPayloadRelativePosition<NumDiffMode::Forward_t>(
     double dt, const Eigen::Vector2d& pld_rel_pos, NumDiffMode::Forward_t) {
   pld_rel_pos_ = numdiff_rel_pos_;
   if (dt < 1e-10) {
@@ -159,14 +159,14 @@ void RobustTracker::setPayloadRelativePosition<NumDiffMode::Forward_t>(
   numdiff_rel_pos_ = pld_rel_pos;
 }
 
-void RobustTracker::setPayloadRelativePosVel(
+void SLTSController::setPayloadRelativePosVel(
     const Eigen::Vector2d& pld_rel_pos, const Eigen::Vector2d& pld_rel_vel) {
   pld_rel_pos_ = pld_rel_pos;
   numdiff_rel_pos_ = pld_rel_pos;
   pld_rel_vel_ = pld_rel_vel;
 }
 
-bool RobustTracker::computeFullVelocity() {
+bool SLTSController::computeFullVelocity() {
   using std::sqrt;
   pld_rel_pos_full_.head<2>() = pld_rel_pos_;
   pld_rel_vel_full_.head<2>() = pld_rel_vel_;
@@ -193,7 +193,7 @@ bool RobustTracker::computeFullVelocity() {
   return false;
 }
 
-void RobustTracker::updateTranslationalErrors(double dt) {
+void SLTSController::updateTranslationalErrors(double dt) {
   const Eigen::Vector3d scaled_pos_err = k_pos_err_.cwiseProduct(pld_pos_err_);
   gen_trans_err_ = scaled_pos_err + pld_vel_err_;
 
@@ -209,7 +209,7 @@ void RobustTracker::updateTranslationalErrors(double dt) {
   filt_cross_feeding_.integrate(filt_cross_feeding_rates, dt);
 }
 
-void RobustTracker::updateDisturbanceEstimates(double dt) {
+void SLTSController::updateDisturbanceEstimates(double dt) {
   uav_de_.value = uav_de_.integral.value();
 
   proj_de_ = uav_de_.value - uav_de_.value.dot(pld_rel_pos_full_) /
@@ -230,7 +230,7 @@ void RobustTracker::updateDisturbanceEstimates(double dt) {
       total_de_.value + thrust_act_ + proj_de_ + sys_weight_, dt);
 }
 
-void RobustTracker::computePayloadStateEstimates() {
+void SLTSController::computePayloadStateEstimates() {
   using std::sqrt;
   pld_trim_est_ = -(pld_weight_ + total_de_.value);
   const double sq_nrm = pld_trim_est_.squaredNorm();
