@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#ifndef SLTS_CONTROL_ROBUST_TRACKER_H_
-#define SLTS_CONTROL_ROBUST_TRACKER_H_
+#ifndef SLTS_CONTROL_SLTS_CONTROLLER_H_
+#define SLTS_CONTROL_SLTS_CONTROLLER_H_
 
 #include <Eigen/Dense>
 #include <cstdint>
@@ -199,4 +199,4 @@ class SLTSController {
 
 }  // namespace control
 
-#endif  // SLTS_CONTROL_ROBUST_TRACKER_H_
+#endif  // SLTS_CONTROL_SLTS_CONTROLLER_H_

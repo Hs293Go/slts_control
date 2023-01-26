@@ -28,8 +28,8 @@ sudo apt-get install libgtest-dev
 At the root of this package, run
 
 ``` bash
-cmake -S . -B build
-cmake --build build
+cmake -S . -B build --preset=ci-ubuntu # Or some entry from your CMakeUserPresets.json
+cmake --build build --config Release
 sudo cmake --install build
 ```
 
@@ -39,14 +39,15 @@ Tests are not built by default. Testing is covered in `tests/testing.md`.
 
 This section walks you through how to use this controller library in your C++ code.
 
-1. Find this package and link your executable to it in CMake
+1. Find this package and link your executable to it in CMake. **NOTE**: Target name is `slts_control::slts_controller`
 
     ``` cmake
     find_package(slts_control REQUIRED)
 
     add_executable(my_controller path/to/my_controller.cpp)
-    target_link_libraries(my_controller slts_control::robust_tracker)
+    target_link_libraries(my_controller slts_control::slts_controller)
     ```
+
 2. Include the required headers
 
     ``` C++
@@ -104,7 +105,7 @@ This section walks you through how to use this controller library in your C++ co
         ctl.uav_acc() = rotation_body_to_earth * imu_acc_reading;
         ```
 
-    * Update vehicle actual thrust estimation. 
+    * Update vehicle actual thrust estimation.
   
       > Good if you have instrumented motors and ESCs. If not, use the thrust magnitude, multiplied by the body-Z axis of the UAV
 

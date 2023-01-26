@@ -4,10 +4,11 @@ project(slts_control VERSION 1.0.0)
 include(GNUInstallDirs)
 
 find_package(Eigen3 REQUIRED)
+set(Eigen3_DEPENDENCY "find_dependency (Eigen3 ${Eigen3_VERSION})")
 
 set(COMPILE_OPTS
     "$<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>$<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>"
-    "$<$<CONFIG:Debug>:-g3>"
+    "$<$<CONFIG:Debug>:-Og>"
     "$<$<CONFIG:Release>:-O3>")
 
 add_library(slts_controller src/${PROJECT_NAME}/slts_controller.cpp)
